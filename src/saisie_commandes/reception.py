@@ -9,8 +9,13 @@ Un mail ne se lit que par ses pièces jointes, au sens de `EmailMessage.iter_att
 image incluse dans le corps n'en est pas une, un message transféré en est une. Son corps n'est
 jamais lu. Le mail dont la seule pièce jointe est un PDF se traite comme ce PDF, que
 `save_pdf_attachment` écrit dans un dossier ; tout autre mail est rejeté (`RejectedMail`).
+
+Tout ce que porte un mail est non fiable : une pièce jointe faite de parties (message transféré,
+`multipart/*`) n'est jamais un PDF, et le nom d'une pièce jointe ne devient un nom de fichier que
+s'il a une forme sûre.
 """
 
+import re
 from collections import Counter
 from collections.abc import Iterable
 from email import policy
@@ -24,8 +29,17 @@ _DOCUMENT_SUFFIXES = frozenset({_PDF_SUFFIX, _MAIL_SUFFIX})
 """Extensions, en minuscules, des fichiers reçus comme documents."""
 
 _PDF_TYPE = "application/pdf"
+
+_SAFE_FILE_NAME = re.compile(r"[\w-][\w .-]{0,61}\.pdf", re.IGNORECASE)
+"""Forme d'un nom de pièce jointe gardé comme nom de fichier, par liste blanche.
+
+Lettres et chiffres de toute écriture, `_`, `-`, espace et point, ni point ni espace en tête,
+terminé par `.pdf`. Au plus 66 caractères, de 4 octets UTF-8 au pire : 252 octets, sous la limite
+de 255 octets d'un nom de fichier sous Linux.
+"""
+
 _UNNAMED_PDF = "piece_jointe.pdf"
-"""Nom du PDF écrit quand le nom de sa pièce jointe ne désigne aucun fichier."""
+"""Nom du PDF écrit quand le nom de sa pièce jointe n'a pas la forme `_SAFE_FILE_NAME`."""
 
 
 class RejectedMail(Exception):
@@ -60,8 +74,9 @@ def save_pdf_attachment(mail: Path, directory: Path) -> Path:
     """Écrit dans `directory` le PDF qu'un mail porte en seule pièce jointe ; rend son chemin.
 
     Le nom de la pièce jointe vient d'un fichier non fiable : le PDF n'en garde que le dernier
-    composant, coupé sur la barre oblique comme sur l'antislash, et se nomme `piece_jointe.pdf`
-    s'il n'en reste aucun nom de fichier. Rien ne s'écrit hors de `directory`.
+    composant, coupé sur la barre oblique comme sur l'antislash, et seulement s'il a une forme
+    sûre ; sinon il se nomme `piece_jointe.pdf`. Rien ne s'écrit hors de `directory`. Seul le nom
+    de fichier est filtré : un motif de rejet cite le nom brut de la pièce jointe.
 
     Raises:
         RejectedMail: le mail n'a aucune pièce jointe, en a plusieurs, PDF ou non, ou sa seule
@@ -91,21 +106,28 @@ def _pdf_attachment(message: EmailMessage) -> EmailMessage:
 
 
 def _display_name(attachment: EmailMessage) -> str:
-    """Nom d'une pièce jointe dans un motif : son nom de fichier, à défaut son type MIME."""
+    """Nom d'une pièce jointe dans un motif : son nom brut, à défaut son type MIME."""
     return attachment.get_filename() or attachment.get_content_type()
 
 
 def _is_pdf(attachment: EmailMessage) -> bool:
-    """Vrai si la pièce jointe est un PDF : par son type MIME, ou par l'extension de son nom."""
+    """Vrai si la pièce jointe est un PDF : des octets, de type MIME PDF ou nommés en `.pdf`.
+
+    Le parseur lit une pièce jointe `message/*` ou `multipart/*` comme des parties, sans octets
+    (`get_payload(decode=True)` rend `None`) : elle n'est jamais un PDF, quel que soit son nom.
+    """
+    if attachment.is_multipart():
+        return False
     name = attachment.get_filename() or ""
     return attachment.get_content_type() == _PDF_TYPE or name.lower().endswith(_PDF_SUFFIX)
 
 
 def _file_name(attachment: EmailMessage) -> str:
-    """Nom du fichier où écrire une pièce jointe PDF : le dernier composant de son nom.
+    """Nom de fichier du PDF d'une pièce jointe : le dernier composant de son nom, s'il est sûr.
 
-    `PureWindowsPath` coupe sur `/` comme sur l'antislash et retire un lecteur ; `.` ne survit pas
-    au découpage, `..` si.
+    `PureWindowsPath` coupe sur `/` comme sur l'antislash et retire un lecteur ; le composant qui
+    reste n'est gardé que s'il a la forme `_SAFE_FILE_NAME`, sinon le PDF se nomme
+    `piece_jointe.pdf`.
     """
     name = PureWindowsPath(attachment.get_filename() or "").name
-    return name if name not in {"", ".."} else _UNNAMED_PDF
+    return name if _SAFE_FILE_NAME.fullmatch(name) else _UNNAMED_PDF

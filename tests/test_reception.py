@@ -15,6 +15,11 @@ ORDER_BODY = (
 )
 """Corps qui recopie une commande en texte : il n'est jamais lu."""
 
+UNNAMED = "piece_jointe.pdf"
+
+LONGEST_NAME = chr(0x1D400) * 62 + ".pdf"
+"""Le plus long nom gardé : 62 caractères de 4 octets en UTF-8, puis `.pdf` ; 252 octets."""
+
 PDF_DIRECTORY = Path("temporaire", "mail")
 """Dossier du PDF écrit, deux niveaux sous le mail : un nom en `../../` en sortirait vers lui."""
 
@@ -106,6 +111,26 @@ def test_une_piece_jointe_octet_stream_nommee_en_pdf_est_un_pdf(tmp_path):
     assert decision(message, tmp_path) == ("Commande.PDF", PDF)
 
 
+@pytest.mark.parametrize(
+    "make",
+    [
+        pytest.param(lambda part: part.set_content(mail()), id="message-rfc822"),
+        pytest.param(EmailMessage.make_mixed, id="multipart-mixed"),
+        pytest.param(EmailMessage.make_alternative, id="multipart-alternative"),
+        pytest.param(EmailMessage.make_related, id="multipart-related"),
+    ],
+)
+def test_une_piece_jointe_faite_de_parties_n_est_pas_un_pdf_meme_nommee_en_pdf(tmp_path, make):
+    """Message transféré ou multipart : le parseur en lit des parties, jamais des octets."""
+    part = mail()
+    make(part)
+    part["Content-Disposition"] = 'attachment; filename="x.pdf"'
+    message = mail()
+    message.make_mixed()
+    message.attach(part)
+    assert decision(message, tmp_path) == "pièce jointe « x.pdf » qui n'est pas un PDF"
+
+
 def test_deux_mails_au_meme_corps_mais_aux_pieces_jointes_differentes_sont_decides_autrement(
     tmp_path,
 ):
@@ -155,12 +180,34 @@ def test_une_piece_jointe_nommee_par_un_chemin_s_ecrit_dans_le_dossier_sous_son_
 
 
 @pytest.mark.parametrize(
-    "name",
+    ("name", "file_name"),
     [
-        pytest.param(None, id="absent"),
-        pytest.param("", id="vide"),
-        pytest.param("..", id="dossier-parent"),
+        pytest.param("Commande_3.pdf", "Commande_3.pdf", id="garde-souligne"),
+        pytest.param("Commande 3.PDF", "Commande 3.PDF", id="garde-espace-et-capitales"),
+        pytest.param("bon-de-commande.pdf", "bon-de-commande.pdf", id="garde-tirets"),
+        pytest.param("Commande_reçue.pdf", "Commande_reçue.pdf", id="garde-accent"),
+        pytest.param(LONGEST_NAME, LONGEST_NAME, id="garde-252-octets"),
+        pytest.param(None, UNNAMED, id="absent"),
+        pytest.param("", UNNAMED, id="vide"),
+        pytest.param(".", UNNAMED, id="point"),
+        pytest.param("..", UNNAMED, id="dossier-parent"),
+        pytest.param("...", UNNAMED, id="trois-points"),
+        pytest.param("a" * 63 + ".pdf", UNNAMED, id="un-caractere-de-trop"),
+        pytest.param("a" * 300 + ".pdf", UNNAMED, id="304-caracteres"),
+        pytest.param("a" + chr(0) + "b.pdf", UNNAMED, id="caractere-nul"),
+        pytest.param("a.pdf:x", UNNAMED, id="flux-ntfs"),
+        pytest.param("a*.pdf", UNNAMED, id="etoile"),
+        pytest.param("a?.pdf", UNNAMED, id="point-d-interrogation"),
+        pytest.param("a<.pdf", UNNAMED, id="chevron-ouvrant"),
+        pytest.param("a>.pdf", UNNAMED, id="chevron-fermant"),
+        pytest.param("a|.pdf", UNNAMED, id="barre-verticale"),
+        pytest.param('a".pdf', UNNAMED, id="guillemet"),
+        pytest.param("devis", UNNAMED, id="sans-extension-pdf"),
+        pytest.param(".cache.pdf", UNNAMED, id="point-initial"),
+        pytest.param("a.pdf.", UNNAMED, id="point-final"),
     ],
 )
-def test_un_pdf_joint_sans_nom_de_fichier_utilisable_s_ecrit_sous_piece_jointe(tmp_path, name):
-    assert decision(mail((name, PDF_TYPE)), tmp_path) == ("piece_jointe.pdf", PDF)
+def test_un_pdf_joint_garde_son_nom_s_il_a_une_forme_sure_sinon_se_nomme_piece_jointe(
+    tmp_path, name, file_name
+):
+    assert decision(mail((name, PDF_TYPE)), tmp_path) == (file_name, PDF)
