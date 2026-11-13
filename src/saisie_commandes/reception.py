@@ -39,8 +39,16 @@ terminé par `.pdf`. Au plus 62 caractères avant `.pdf`, de 4 octets UTF-8 au p
 sous la limite de 255 octets d'un nom de fichier sous Linux.
 """
 
+_WINDOWS_DEVICE = re.compile(r"(CON|PRN|AUX|NUL|COM[0-9¹²³]|LPT[0-9¹²³]) *(\.|$)", re.IGNORECASE)
+"""Nom que Windows lit comme un périphérique, quelle que soit l'extension (`CON.pdf`, `nul.a.pdf`).
+
+Noms réservés de la documentation Windows « Naming Files, Paths, and Namespaces » (lue le
+2026-11-13), « suivis immédiatement d'une extension » compris. S'y ajoutent, par prudence, `COM0`,
+`LPT0` et des espaces avant le point, qu'elle ne nomme pas : un tel nom ne fait que se replier.
+"""
+
 _UNNAMED_PDF = "piece_jointe.pdf"
-"""Nom du PDF écrit quand le nom de sa pièce jointe n'a pas la forme `_SAFE_FILE_NAME`."""
+"""Nom du PDF écrit quand le nom de sa pièce jointe n'est pas sûr (`_file_name`)."""
 
 _UNPRINTABLE = chr(0xFFFD)
 """Caractère de remplacement Unicode, mis dans un motif à la place d'un caractère non imprimable."""
@@ -143,8 +151,9 @@ def _file_name(attachment: EmailMessage) -> str:
     """Nom de fichier du PDF d'une pièce jointe : le dernier composant de son nom, s'il est sûr.
 
     `PureWindowsPath` coupe sur `/` comme sur l'antislash et retire un lecteur ; le composant qui
-    reste n'est gardé que s'il a la forme `_SAFE_FILE_NAME`, sinon le PDF se nomme
-    `piece_jointe.pdf`.
+    reste n'est gardé que s'il a la forme `_SAFE_FILE_NAME` et ne désigne pas un périphérique
+    Windows (`_WINDOWS_DEVICE`), sinon le PDF se nomme `piece_jointe.pdf`.
     """
     name = PureWindowsPath(attachment.get_filename() or "").name
-    return name if _SAFE_FILE_NAME.fullmatch(name) else _UNNAMED_PDF
+    safe = _SAFE_FILE_NAME.fullmatch(name) and not _WINDOWS_DEVICE.match(name)
+    return name if safe else _UNNAMED_PDF

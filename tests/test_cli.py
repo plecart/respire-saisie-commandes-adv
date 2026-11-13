@@ -1,5 +1,7 @@
 """Tests de la ligne de commande, hors traitement d'un lot fourni (voir `test_bout_en_bout`)."""
 
+import sys
+from contextlib import ExitStack
 from importlib.metadata import entry_points
 from pathlib import Path
 
@@ -105,3 +107,22 @@ def test_l_extracteur_recoit_le_pdf_joint_a_un_mail_qui_ne_lui_survit_pas(tmp_pa
         PDF,
         False,
     )
+
+
+@pytest.mark.skipif(
+    sys.platform != "win32", reason="seul Windows refuse d'effacer un fichier ouvert"
+)
+def test_un_pdf_temporaire_que_l_extracteur_garde_ouvert_n_interrompt_pas_le_lot(tmp_path):
+    """Le dossier temporaire du mail ne s'efface pas ; le résultat du mail est rendu quand même."""
+    document = tmp_path / "Mail.eml"
+    document.write_bytes(bytes(mail(("Commande.pdf", PDF_TYPE))))
+    with ExitStack() as opened:
+
+        def extract(pdf: Path) -> RawFields:
+            opened.enter_context(pdf.open("rb"))
+            return NOT_AN_ORDER
+
+        results = process_documents(
+            [document], tmp_path / "sorties", extract, ReferenceData([], [])
+        )
+    assert list(results) == ["Mail"]
