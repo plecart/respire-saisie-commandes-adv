@@ -46,8 +46,13 @@ _MAX_RETRIES = 5
 _TIMEOUT_SECONDS = 120
 """Attente maximale d'une tentative ; celle du SDK, 10 minutes, ferait une heure sur six."""
 
-_DPI = 150
-"""Résolution du rendu des pages."""
+_DPI = 220
+"""Résolution du rendu des pages.
+
+À 150 dpi, Haiku 5.5 décalait d'une ligne deux totaux de Commande_1 (13 lignes, beaucoup à
+« 0,00 € ») à deux lectures sur six ; à 220 dpi, huit sur huit justes, réponse plus courte
+(mesuré le 2026-11-13, description de la PR #11).
+"""
 
 _MAX_TOKENS = 16_000
 """Plafond de la réponse ; les champs bruts attendus de Commande_3, 18 lignes, font 3 Ko de JSON."""
