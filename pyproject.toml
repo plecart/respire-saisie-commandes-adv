@@ -4,7 +4,9 @@ version = "0.1.0"
 description = "Saisie des bons de commande reçus par l'ADV en commandes de vente."
 requires-python = ">=3.12"
 dependencies = [
+    "anthropic>=2.8.0",
     "pydantic>=2.14.3",
+    "pymupdf>=2.1",
 ]
 
 [project.scripts]
