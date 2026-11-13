@@ -87,7 +87,7 @@ Une boîte Gmail dédiée, relevée en IMAP à intervalle régulier, alimente le
 ## Conséquences
 
 - Chaque document coûte un appel d'IA, même quand son texte serait lisible sans.
-- Le programme ne fonctionne pas sans clé d'API : la personne qui le lance doit fournir la sienne.
+- Le programme ne fonctionne pas sans clé d'API : la personne qui le lance fournit la sienne ou, à défaut, une clé de test que le mainteneur lui prête, liée à un compte de service et adossée à un crédit prépayé.
 - Le rapprochement client par égalité stricte du nom bloque à la moindre variante d'écriture : c'est voulu, un humain tranche.
 - Deux pharmacies actives de même nom dans la même ville ne sont pas départageables.
 - Les colis, les unités gratuites et les doubles remises sont renvoyés à un humain.
