@@ -1,0 +1,35 @@
+[project]
+name = "saisie-commandes"
+version = "0.1.0"
+description = "Saisie des bons de commande reçus par l'ADV en commandes de vente."
+requires-python = ">=3.12"
+dependencies = []
+
+[build-system]
+requires = ["uv_build>=0.12.5,<0.13.0"]
+build-backend = "uv_build"
+
+[tool.ruff]
+line-length = 100
+
+[tool.ruff.lint]
+extend-select = ["I", "UP", "B"]
+
+[tool.pytest]
+testpaths = ["tests"]
+addopts = ["--cov"]
+
+[tool.coverage.run]
+# Mesurée sur les seuls référentiels et règles métier (PRD #1, « Décisions de test »).
+source = ["saisie_commandes.referentiels"]
+
+[tool.coverage.report]
+fail_under = 80
+show_missing = true
+
+[dependency-groups]
+dev = [
+    "pytest>=9.2.0",
+    "pytest-cov>=7.1.0",
+    "ruff>=0.17.5",
+]
