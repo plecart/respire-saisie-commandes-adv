@@ -13,7 +13,7 @@ from decimal import Decimal
 
 from saisie_commandes.champs import Illegible, Printed
 
-_NUMBER = re.compile("[0-9]+(?:[.,][0-9]+)?")
+_NUMBER = re.compile("[0-9]+(?:,[0-9]+|[.](?:[0-9]{1,2}|[0-9]{4,}))?")
 _DATE = re.compile("(?P<day>[0-9]{1,2})[./-](?P<month>[0-9]{1,2})[./-](?P<year>[0-9]{4}|[0-9]{2})")
 
 
@@ -32,7 +32,12 @@ def readable(printed: Printed) -> str | None:
 
 
 def parse_number(text: str) -> Decimal | None:
-    """Nombre positif à la française : espaces et symbole euro ignorés, virgule décimale."""
+    """Nombre positif à la française : espaces et symbole euro ignorés, virgule décimale.
+
+    Un point décimal est admis, sauf suivi d'exactement trois chiffres : « 1.000 » vaut 1 ou 1000
+    selon que le point est décimal ou de milliers. Aucun document fourni n'imprime de point dans
+    un nombre.
+    """
     compact = "".join(text.split()).strip("€")
     if _NUMBER.fullmatch(compact) is None:
         return None

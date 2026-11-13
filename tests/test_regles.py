@@ -216,6 +216,12 @@ def warning(message: str) -> Anomaly:
             id="quantite-en-colis",
         ),
         pytest.param(
+            document(line(unit="colis de 6")),
+            Status.BLOCKED,
+            [on_line("quantité en colis : « colis de 6 »")],
+            id="quantite-en-colis-en-minuscules",
+        ),
+        pytest.param(
             document(line(free_units="2")),
             Status.BLOCKED,
             [on_line("unités gratuites : « 2 »")],
@@ -371,8 +377,7 @@ def test_un_bon_accepte_produit_sa_commande():
 def test_un_document_bloque_garde_toutes_ses_anomalies_et_ce_qui_a_ete_etabli():
     """Commande_5 : un EAN absent, une quantité en colis, un EAN inconnu.
 
-    La ligne en colis est recalculée comme les autres : 2 × 18,25 × 0,65 ne redonne pas le
-    total imprimé, qui compte 12 unités.
+    La ligne en colis n'est pas recalculée : son total imprimé compte 2 colis de 6 unités.
     """
     fields = document(
         line(quantity="24", line_total="167,70"),
@@ -398,11 +403,6 @@ def test_un_document_bloque_garde_toutes_ses_anomalies_et_ce_qui_a_ete_etabli():
         anomalies=(
             blocking("EAN absent", line_number=3),
             blocking("quantité en colis : « COL6 »", line_number=4, ean="3760368742383"),
-            blocking(
-                "total de ligne incohérent : « 142,35 » imprimé, 23,73 calculé",
-                line_number=4,
-                ean="3760368742383",
-            ),
             blocking("EAN inconnu du référentiel", line_number=5, ean="3760368799912"),
         ),
         summary=Summary(10106, "2026-11-0457", date(2026, 11, 10), 6, Decimal("601.53")),
@@ -549,6 +549,14 @@ def test_tolerance_d_un_centime_sur_le_document(printed, status):
             OrderLine("DSTPFC50", 12, Decimal("1592.99"), Decimal(0)),
             id="separateur-de-milliers-et-quantite-decimale-entiere",
         ),
+        pytest.param(
+            "12",
+            "10.75",
+            ["35.0%"],
+            "83.85",
+            OrderLine("DSTPFC50", 12, Decimal("10.75"), Decimal(35)),
+            id="point-decimal",
+        ),
     ],
 )
 def test_les_valeurs_imprimees_des_documents_fournis_se_lisent(
@@ -610,6 +618,46 @@ def test_numero_de_commande_repris_tel_quel(printed, client_order_ref):
 )
 def test_une_valeur_illisible_n_est_jamais_devinee(printed, anomaly):
     assert apply_rules(document(line(**printed)), REFERENCES).anomalies == (anomaly,)
+
+
+@pytest.mark.parametrize(
+    ("quantity", "amount", "anomalies"),
+    [
+        pytest.param("1.000", "0,00", [on_line("quantité illisible : « 1.000 »")], id="quantite"),
+        pytest.param(
+            "1",
+            "1.000",
+            [
+                on_line("prix catalogue illisible : « 1.000 »"),
+                on_line("total de ligne illisible : « 1.000 »"),
+                blocking("total HT illisible : « 1.000 »"),
+            ],
+            id="montants",
+        ),
+    ],
+)
+def test_un_point_suivi_de_trois_chiffres_est_ambigu(quantity, amount, anomalies):
+    """« 1.000 » vaut 1 ou 1000 selon que le point est décimal ou de milliers : rien n'est deviné.
+
+    Lu 1, il passerait inaperçu : avec un prix nul, ou partout à la fois dans les montants.
+    """
+    printed = line(quantity=quantity, catalog_price=amount, discounts=[], line_total=amount)
+    fields = document(printed, total_excl_tax=amount)
+    assert list(apply_rules(fields, REFERENCES).anomalies) == anomalies
+
+
+@pytest.mark.parametrize(
+    ("unit", "anomaly"),
+    [
+        pytest.param("COL6", "quantité en colis : « COL6 »", id="colis"),
+        pytest.param(ILLEGIBLE, "unité illisible", id="unite-illisible"),
+    ],
+)
+def test_une_quantite_qui_n_est_pas_en_unites_n_est_pas_recalculee(unit, anomaly):
+    """2 colis de 6 à 18,25 remisés à 35 % : 2 × 18,25 × 0,65 ne redonne pas les 142,35 imprimés."""
+    printed = line(quantity="2", unit=unit, catalog_price="18,25", line_total="142,35")
+    fields = document(printed, total_excl_tax="142,35")
+    assert apply_rules(fields, REFERENCES).anomalies == (on_line(anomaly),)
 
 
 def test_une_remise_imprimee_a_zero_compte_parmi_plusieurs_remises():
