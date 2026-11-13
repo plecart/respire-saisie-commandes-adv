@@ -30,13 +30,17 @@ _NOT_ESTABLISHED = "—"
 def write_outputs(results: Results, directory: Path) -> None:
     """Écrit dans `directory`, créé s'il manque, le JSON de chaque commande produite et le rapport.
 
-    Le JSON d'un document se nomme d'après lui : `<nom du document>.json`.
+    Le JSON d'un document se nomme d'après lui : `<nom du document>.json`. Celui d'un document du
+    lot sans commande est retiré, s'il reste d'un lancement précédent : aucun JSON ne contredit le
+    rapport. Le dossier n'est jamais vidé ; le JSON d'un document hors du lot y reste.
     """
     directory.mkdir(parents=True, exist_ok=True)
     for name, result in results.items():
-        if result.order is not None:
-            order = json.dumps(_order_json(result.order), ensure_ascii=False, indent=2)
-            _write(directory / f"{name}.json", order)
+        path = directory / f"{name}.json"
+        if result.order is None:
+            path.unlink(missing_ok=True)
+        else:
+            _write(path, json.dumps(_order_json(result.order), ensure_ascii=False, indent=2))
     _write(directory / _REPORT, _report(results))
 
 

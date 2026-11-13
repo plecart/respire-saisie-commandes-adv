@@ -1,8 +1,11 @@
 """Tests des sorties d'un lot, par les fichiers écrits et le résumé rendu."""
 
 import json
+from dataclasses import replace
 from datetime import date
 from decimal import Decimal
+
+import pytest
 
 from saisie_commandes.resultat import Anomaly, DocumentResult, Order, OrderLine, Summary
 from saisie_commandes.sorties import summary_table, write_outputs
@@ -111,3 +114,33 @@ def test_le_rapport_s_ouvre_sur_le_tableau_puis_liste_les_anomalies_situees(tmp_
         "- EAN absent (ligne 3)\n"
         "- quantité en colis : « COL6 » (ligne 4, EAN 3760368742383)\n"
     )
+
+
+def written_files(directory) -> dict[str, bytes]:
+    """Contenu de chaque fichier d'un dossier de sortie, par nom."""
+    return {path.name: path.read_bytes() for path in directory.iterdir()}
+
+
+@pytest.mark.parametrize(
+    ("first", "second"),
+    [
+        pytest.param(
+            COMMANDE_3,
+            replace(COMMANDE_3, order=replace(COMMANDE_3.order, client_order_ref="208533")),
+            id="commande-reecrite",
+        ),
+        pytest.param(COMMANDE_3, DOCUMENT_4, id="commande-bloquee-a-la-relance"),
+        pytest.param(DOCUMENT_4, COMMANDE_5, id="rapport-reecrit"),
+    ],
+)
+def test_une_relance_dans_le_meme_dossier_ecrit_ce_qu_ecrirait_un_dossier_neuf(
+    tmp_path, first, second
+):
+    """Relancé sur un dossier de sortie déjà servi, le lot y laisse ce qu'un dossier neuf aurait.
+
+    Trois formes : JSON réécrit, JSON d'un document bloqué à la relance retiré, rapport réécrit.
+    """
+    write_outputs({"Commande": first}, tmp_path / "relance")
+    write_outputs({"Commande": second}, tmp_path / "relance")
+    write_outputs({"Commande": second}, tmp_path / "neuf")
+    assert written_files(tmp_path / "relance") == written_files(tmp_path / "neuf")
