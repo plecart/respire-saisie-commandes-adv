@@ -23,7 +23,7 @@ addopts = ["--cov"]
 
 [tool.coverage.run]
 # Mesurée sur les seuls référentiels et règles métier (PRD #1, « Décisions de test »).
-source = ["saisie_commandes.referentiels"]
+source = ["saisie_commandes.referentiels", "saisie_commandes.regles", "saisie_commandes.valeurs"]
 
 [tool.coverage.report]
 fail_under = 80
