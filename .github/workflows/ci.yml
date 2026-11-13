@@ -17,8 +17,8 @@ permissions:
 on:
   pull_request:
     # `ready_for_review` produit le premier run d'une PR : le garde `if:` du job `ci` saute toute
-    # draft, et aucun run n'a donc couvert son SHA. `cycle-pr` sort du draft, puis attend ce run
-    # (Étape 5) ; chaque push en lance un autre ; `reopened` relance une PR dont l'événement s'est
+    # draft, et aucun run n'a donc couvert son SHA. Sortir du draft lance ce run ; chaque push en
+    # lance un autre ; `reopened` relance une PR dont l'événement s'est
     # perdu, ou dont le trunk a changé la définition du workflow depuis le déclenchement : seul un
     # événement neuf la relit.
     types: [opened, synchronize, reopened, ready_for_review]
@@ -40,7 +40,7 @@ jobs:
     # Aucune PR en draft ne tourne, quel que soit l'événement — ouverture, push, réouverture : une
     # draft change à chaque commit, et la CI ne paie un run que là où son verdict peut tenir — au
     # passage en ready, puis à chaque push. Un rouge propre à la plateforme cible se voit donc au
-    # passage en ready, après la relecture (`cycle-pr`, Étape 4) : le prix assumé. Une PR ouverte
+    # passage en ready, après la relecture : le prix assumé. Une PR ouverte
     # prête — un bot de dépendances, une branche déjà écrite — tourne dès l'ouverture.
     #
     # La condition sur `event_name` est nécessaire : sur un push vers `main`, l'objet
@@ -59,7 +59,7 @@ jobs:
       # d'une PR reprend par `*fusion` (doc GitHub « Reusing workflow configurations ») ; une ancre
       # ne vaut que dans son fichier. La référence de fusion de la forge est calculée au
       # déclenchement, et un `gh run rerun` la réutilise : fusionnée ici, la tête l'est au trunk du
-      # moment, et la trace dit lequel à `porte-merge.py trunk` (`cycle-pr` Étape 7). Elle vit dans
+      # moment, et la trace dit lequel avant le merge. Elle vit dans
       # la définition du workflow, que le run lit à son commit, jamais dans l'arbre extrait : une
       # action locale se lirait dans la tête, qu'une PR ouverte avant elle ne porte pas.
       #
@@ -74,7 +74,7 @@ jobs:
       # construit rien, et `merge` sort pourtant en 0 : le pas échoue plutôt que de donner un commit
       # du trunk pour une fusion. La trace, en dernier, relit les parents du commit et nomme le
       # `GITHUB_SHA` du run, la référence de fusion dont il a lu cette définition, qu'un
-      # `gh run rerun` garde : une ligne destinée à `porte-merge.py trunk`, et aucune ligne du
+      # `gh run rerun` garde : une ligne lue avant le merge, et aucune ligne du
       # script, que le journal recopie, ne commence par son préfixe — celle qui l'écrit commence
       # par `printf`.
       - &fusion
