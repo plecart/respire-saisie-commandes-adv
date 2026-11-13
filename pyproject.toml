@@ -13,7 +13,7 @@ build-backend = "uv_build"
 line-length = 100
 
 [tool.ruff.lint]
-extend-select = ["I", "UP", "B"]
+extend-select = ["E501", "W", "I", "UP", "B"]
 
 [tool.pytest]
 testpaths = ["tests"]
