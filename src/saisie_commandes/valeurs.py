@@ -7,14 +7,19 @@ de tirets vaut une valeur absente. Chaque analyse rend `None` pour un texte qu'e
 pas ; à l'appelant d'en faire une valeur illisible.
 
 Un montant s'arrondit au centime, au demi supérieur (PRD #1, « Contrôles de calcul »), et
-s'écrit comme il s'imprime : « 1 592,99 ».
+s'écrit comme il s'imprime : « 1 592,99 ». Un texte non fiable s'écrit sur une ligne
+(`on_one_line`).
 """
 
 import re
+import unicodedata
 from datetime import date
 from decimal import ROUND_HALF_UP, Decimal
 
 from saisie_commandes.champs import Illegible, Printed
+
+_UNPRINTABLE = chr(0xFFFD)
+"""Caractère de remplacement Unicode, écrit à la place d'un caractère non imprimable."""
 
 _CENT = Decimal("0.01")
 _NUMBER = re.compile("[0-9]+(?:,[0-9]+|[.](?:[0-9]{1,2}|[0-9]{4,}))?")
@@ -89,3 +94,20 @@ def round_to_cent(amount: Decimal) -> Decimal:
 def format_amount(amount: Decimal) -> str:
     """Montant au centime, à la française : espace de milliers, virgule décimale (« 1 592,99 »)."""
     return f"{round_to_cent(amount):,}".replace(",", " ").replace(".", ",")
+
+
+def on_one_line(text: str) -> str:
+    """Texte non fiable écrit sur une seule ligne, pour une ligne de rapport ou une cellule.
+
+    Chaque caractère non imprimable (`str.isprintable`) — fin de ligne, retour chariot,
+    séparateur de ligne Unicode, caractère de contrôle — devient le caractère de remplacement
+    U+FFFD ; un espace autre que l'espace ASCII (insécable, fine insécable) devient un espace.
+    """
+    return "".join(map(_printable, text))
+
+
+def _printable(char: str) -> str:
+    """Le caractère s'il est imprimable ; sinon un espace pour un espace, `_UNPRINTABLE` sinon."""
+    if char.isprintable():
+        return char
+    return " " if unicodedata.category(char) == "Zs" else _UNPRINTABLE

@@ -16,13 +16,14 @@ s'il a une forme sûre, et un motif de rejet n'en cite aucun caractère non impr
 """
 
 import re
-import unicodedata
 from collections import Counter
 from collections.abc import Iterable
 from email import policy
 from email.message import EmailMessage
 from email.parser import BytesParser
 from pathlib import Path, PureWindowsPath
+
+from saisie_commandes.valeurs import on_one_line
 
 _PDF_SUFFIX = ".pdf"
 _MAIL_SUFFIX = ".eml"
@@ -49,9 +50,6 @@ Noms réservés de la documentation Windows « Naming Files, Paths, and Namespac
 
 _UNNAMED_PDF = "piece_jointe.pdf"
 """Nom du PDF écrit quand le nom de sa pièce jointe n'est pas sûr (`_file_name`)."""
-
-_UNPRINTABLE = chr(0xFFFD)
-"""Caractère de remplacement Unicode, mis dans un motif à la place d'un caractère non imprimable."""
 
 
 class RejectedMail(Exception):
@@ -120,19 +118,10 @@ def _pdf_attachment(message: EmailMessage) -> EmailMessage:
 def _display_name(attachment: EmailMessage) -> str:
     """Nom d'une pièce jointe dans un motif : son nom, à défaut son type MIME.
 
-    L'un et l'autre peuvent porter une fin de ligne, même encodée : chaque caractère non
-    imprimable y devient `_UNPRINTABLE`, pour qu'un motif tienne sur sa ligne du rapport ; un
-    espace autre que l'espace ASCII (insécable, fine insécable) y devient un espace.
+    L'un et l'autre peuvent porter une fin de ligne, même encodée : ils s'écrivent sur une ligne
+    (`on_one_line`), pour qu'un motif tienne sur sa ligne du rapport.
     """
-    name = attachment.get_filename() or attachment.get_content_type()
-    return "".join(map(_printable, name))
-
-
-def _printable(char: str) -> str:
-    """Le caractère s'il est imprimable ; sinon un espace pour un espace, `_UNPRINTABLE` sinon."""
-    if char.isprintable():
-        return char
-    return " " if unicodedata.category(char) == "Zs" else _UNPRINTABLE
+    return on_one_line(attachment.get_filename() or attachment.get_content_type())
 
 
 def _is_pdf(attachment: EmailMessage) -> bool:

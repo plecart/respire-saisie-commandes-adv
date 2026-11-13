@@ -1,6 +1,8 @@
 """Tests des sorties d'un lot, par les fichiers écrits et le résumé rendu."""
 
 import json
+import re
+import sys
 from dataclasses import replace
 from datetime import date
 from decimal import Decimal
@@ -150,3 +152,47 @@ def test_une_barre_verticale_imprimee_ne_decale_pas_les_colonnes_du_tableau():
     result = DocumentResult((), Summary(client_order_ref="12|34"))
     last_row = summary_table({"A|B": result}).splitlines()[-1]
     assert last_row == "| A\\|B | accepté | — | 12\\|34 | — | — | — |"
+
+
+HOSTILE = "a\nb\rc|d"
+"""Texte non fiable qui porte une fin de ligne, un retour chariot et une barre verticale."""
+
+ANOMALY = Anomaly("point à vérifier", blocking=False, line=1, ean="3760368742383")
+
+
+def cells(row: str) -> list[str]:
+    """Cellules d'une ligne de tableau Markdown, coupée sur ses seules barres non échappées."""
+    return re.split(r"(?<!\\)\|", row)[1:-1]
+
+
+@pytest.mark.parametrize(
+    ("name", "result"),
+    [
+        pytest.param(
+            HOSTILE,
+            DocumentResult((ANOMALY,)),
+            id="nom-du-document",
+            marks=pytest.mark.skipif(
+                sys.platform == "win32",
+                reason="un nom de fichier Windows ne porte ni fin de ligne ni barre verticale",
+            ),
+        ),
+        pytest.param(
+            "A", DocumentResult((ANOMALY,), Summary(client_order_ref=HOSTILE)), id="reference"
+        ),
+        pytest.param("A", DocumentResult((replace(ANOMALY, message=HOSTILE),)), id="message"),
+        pytest.param("A", DocumentResult((replace(ANOMALY, ean=HOSTILE),)), id="ean"),
+    ],
+)
+def test_le_texte_lu_sur_un_document_tient_sur_sa_ligne_du_rapport_et_du_tableau(
+    tmp_path, name, result
+):
+    """Nom du document (colonne et titre), référence, message et EAN d'une anomalie.
+
+    Le tableau garde ses 3 lignes de 7 cellules ; le rapport, ses 7 lignes : le tableau, une ligne
+    vide, le titre, une ligne vide, l'anomalie.
+    """
+    write_outputs({name: result}, tmp_path)
+    table = summary_table({name: result}).splitlines()
+    report = (tmp_path / "rapport.md").read_text(encoding="utf-8").splitlines()
+    assert (len(table), [len(cells(row)) for row in table], len(report)) == (3, [7, 7, 7], 7)
