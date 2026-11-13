@@ -1,5 +1,18 @@
+# Secrets
 .env
+
+# Python
 .venv/
 __pycache__/
 *.pyc
+
+# Outils : pytest, ruff, couverture
+.pytest_cache/
+.ruff_cache/
+.coverage
+.coverage.*
+htmlcov/
+coverage.xml
+
+# Système
 .DS_Store
