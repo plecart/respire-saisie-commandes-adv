@@ -3,7 +3,9 @@ name = "saisie-commandes"
 version = "0.1.0"
 description = "Saisie des bons de commande reçus par l'ADV en commandes de vente."
 requires-python = ">=3.12"
-dependencies = []
+dependencies = [
+    "pydantic>=2.14.3",
+]
 
 [build-system]
 requires = ["uv_build>=0.12.5,<0.13.0"]
