@@ -1,0 +1,15 @@
+{
+  "document_type": "commande",
+  "pharmacy_name": "PHARMACIE DES ARCADES",
+  "postal_code": "59800",
+  "order_number": "156006",
+  "delivery_date": "20/01/2026",
+  "total_excl_tax": "525,750",
+  "lines": [
+    {"ean": "3760368740884", "quantity": "9", "unit": null, "free_units": "0", "catalog_price": "9,750", "discounts": [], "line_total": "87,750"},
+    {"ean": "3760368742796", "quantity": "6", "unit": null, "free_units": "0", "catalog_price": "10,000", "discounts": [], "line_total": "60,000"},
+    {"ean": "3760368740730", "quantity": "24", "unit": null, "free_units": "0", "catalog_price": "10,750", "discounts": [], "line_total": "258,000"},
+    {"ean": "3760368742505", "quantity": "9", "unit": null, "free_units": "0", "catalog_price": "0,000", "discounts": [], "line_total": "0,000"},
+    {"ean": "3760368742772", "quantity": "12", "unit": null, "free_units": "0", "catalog_price": "10,000", "discounts": [], "line_total": "120,000"}
+  ]
+}
