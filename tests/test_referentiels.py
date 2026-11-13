@@ -44,6 +44,7 @@ def with_articles(*articles: dict[str, str]) -> ReferenceData:
         pytest.param(
             "PHARMACIE D'ARMES - ST-PIERRE.", "PHARMACIE D ARMES ST PIERRE", id="ponctuation"
         ),
+        pytest.param("PHARMACIE_DU_LAC", "PHARMACIE DU LAC", id="souligne"),
     ],
 )
 def test_normalisation_du_nom(raw, expected):
