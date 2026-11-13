@@ -1,17 +1,21 @@
 """Référentiels clients et articles, interrogés en mémoire par les règles métier.
 
+Chargés une fois depuis leurs deux CSV (`ReferenceData.load`), ils ne touchent plus le disque.
 Une fiche est une ligne d'un CSV du référentiel : un dictionnaire de l'en-tête vers la valeur,
 en texte. Le rapprochement d'un client suit l'ADR 0001 § 6 : nom normalisé, égalité stricte,
 actifs d'abord, code postal pour départager. L'adresse imprimée n'entre pas dans la recherche :
 la fiche fait foi. Un article se retrouve par son seul EAN.
 """
 
+import csv
 import re
 import unicodedata
 from collections import defaultdict
 from collections.abc import Iterable
 from dataclasses import dataclass
 from enum import Enum, auto
+from pathlib import Path
+from typing import Self
 
 type Row = dict[str, str]
 
@@ -72,6 +76,14 @@ class ReferenceData:
             self._clients_by_name[normalize_name(client["nom"])].append(client)
         self._articles_by_ean = {article["EAN"]: article for article in articles if article["EAN"]}
 
+    @classmethod
+    def load(cls, directory: Path) -> Self:
+        """Charge `base_clients.csv` et `Respire_base_articles.csv` depuis `directory`, en texte."""
+        return cls(
+            clients=_read_csv(directory / "base_clients.csv"),
+            articles=_read_csv(directory / "Respire_base_articles.csv"),
+        )
+
     def find_client(self, name: str, postal_code: str | None) -> ClientMatch:
         """Cherche le client d'un document par son nom et son code postal imprimés.
 
@@ -97,6 +109,16 @@ class ReferenceData:
         (`is_valid_ean13`).
         """
         return self._articles_by_ean.get(ean)
+
+
+def _read_csv(path: Path) -> list[Row]:
+    """Lignes d'un CSV en UTF-8, sans aucune conversion de valeur.
+
+    Un code postal ou un CIP garde son zéro de tête ; la marque d'ordre d'octets qui ouvre le
+    fichier articles est retirée, et n'entre pas dans son premier en-tête.
+    """
+    with path.open(encoding="utf-8-sig", newline="") as file:
+        return list(csv.DictReader(file))
 
 
 def _pick(status: ClientStatus, candidates: list[Row], postal_code: str | None) -> ClientMatch:

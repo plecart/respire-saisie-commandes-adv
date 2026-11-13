@@ -1,4 +1,6 @@
-"""Tests des référentiels : normalisation des noms, rapprochement client, article par EAN."""
+"""Tests des référentiels : chargement en texte, rapprochement client, article par EAN."""
+
+from pathlib import Path
 
 import pytest
 
@@ -9,6 +11,8 @@ from saisie_commandes.referentiels import (
     is_valid_ean13,
     normalize_name,
 )
+
+REFERENTIELS = Path(__file__).parents[1] / "referentiels"
 
 
 def client(client_id: str, name: str, postal_code: str, active: str = "oui") -> dict[str, str]:
@@ -147,3 +151,23 @@ def test_cle_ean13_valide(ean):
 )
 def test_cle_ean13_invalide(ean):
     assert not is_valid_ean13(ean)
+
+
+def test_premier_en_tete_des_articles_lu_sans_marque_d_ordre_d_octets():
+    shampoing = ReferenceData.load(REFERENTIELS).find_article("3000000000014")
+    assert next(iter(shampoing)) == "RAYON"
+
+
+def test_client_du_vrai_referentiel_retrouve_par_nom_et_code_postal():
+    found = ReferenceData.load(REFERENTIELS).find_client("Pharmacie du Beffroi", "59500")
+    assert (found.status, found.client["id_client"]) == (ClientStatus.ACTIVE, "10109")
+
+
+def test_un_zero_de_tete_est_conserve(tmp_path):
+    (tmp_path / "base_clients.csv").write_text(
+        "id_client,cip,nom,code_postal,actif\n10201,0299201,PHARMACIE DE L AIN,01000,oui\n",
+        encoding="utf-8",
+    )
+    (tmp_path / "Respire_base_articles.csv").write_text("SKU,EAN\n", encoding="utf-8")
+    ain = ReferenceData.load(tmp_path).find_client("PHARMACIE DE L AIN", "01000").client
+    assert (ain["cip"], ain["code_postal"]) == ("0299201", "01000")
