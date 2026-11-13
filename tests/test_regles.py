@@ -210,17 +210,13 @@ def warning(message: str) -> Anomaly:
             id="total-du-document-illisible",
         ),
         pytest.param(
-            # Deux colis de douze : le total imprimé compte 24 unités, la quantité 2.
-            document(
-                line(quantity="2", unit="COL12", line_total="167,70"), total_excl_tax="167,70"
-            ),
+            document(line(unit="COL6")),
             Status.BLOCKED,
-            [on_line("quantité en colis : « COL12 »")],
+            [on_line("quantité en colis : « COL6 »")],
             id="quantite-en-colis",
         ),
         pytest.param(
-            # Douze dont deux gratuites : le total imprimé ne compte que dix unités payées.
-            document(line(free_units="2", line_total="69,88"), total_excl_tax="69,88"),
+            document(line(free_units="2")),
             Status.BLOCKED,
             [on_line("unités gratuites : « 2 »")],
             id="unites-gratuites",
@@ -373,7 +369,11 @@ def test_un_bon_accepte_produit_sa_commande():
 
 
 def test_un_document_bloque_garde_toutes_ses_anomalies_et_ce_qui_a_ete_etabli():
-    """Commande_5 : un EAN absent, une quantité en colis, un EAN inconnu."""
+    """Commande_5 : un EAN absent, une quantité en colis, un EAN inconnu.
+
+    La ligne en colis est recalculée comme les autres : 2 × 18,25 × 0,65 ne redonne pas le
+    total imprimé, qui compte 12 unités.
+    """
     fields = document(
         line(quantity="24", line_total="167,70"),
         line(ean="3760368742338"),
@@ -398,6 +398,11 @@ def test_un_document_bloque_garde_toutes_ses_anomalies_et_ce_qui_a_ete_etabli():
         anomalies=(
             blocking("EAN absent", line_number=3),
             blocking("quantité en colis : « COL6 »", line_number=4, ean="3760368742383"),
+            blocking(
+                "total de ligne incohérent : « 142,35 » imprimé, 23,73 calculé",
+                line_number=4,
+                ean="3760368742383",
+            ),
             blocking("EAN inconnu du référentiel", line_number=5, ean="3760368799912"),
         ),
         summary=Summary(10106, "2026-11-0457", date(2026, 11, 10), 6, Decimal("601.53")),
@@ -607,9 +612,11 @@ def test_une_valeur_illisible_n_est_jamais_devinee(printed, anomaly):
     assert apply_rules(document(line(**printed)), REFERENCES).anomalies == (anomaly,)
 
 
-def test_une_remise_a_zero_ne_compte_pas_comme_seconde_remise():
+def test_une_remise_imprimee_a_zero_compte_parmi_plusieurs_remises():
     fields = document(line(discounts=["35%", "0,00 %"]))
-    assert apply_rules(fields, REFERENCES).order.order_line[0].discount == Decimal(35)
+    assert apply_rules(fields, REFERENCES).anomalies == (
+        on_line("plusieurs remises : « 35% », « 0,00 % »"),
+    )
 
 
 def test_des_unites_gratuites_a_zero_n_en_sont_pas():

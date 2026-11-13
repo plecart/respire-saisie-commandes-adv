@@ -6,8 +6,8 @@ l'ADR 0001 § 6 et le PRD #1, §§ « Règles de rapprochement », « Contrôles
 
 - un document qui n'est pas un bon de commande s'arrête à cette seule anomalie ;
 - sinon tous les contrôles s'exécutent, et le résultat garde toutes les anomalies relevées ;
-- un contrôle de calcul ne porte que sur des valeurs établies : une ligne dont la quantité
-  n'est pas en unités payées, ou qui porte plusieurs remises, n'est pas recalculée ;
+- chaque ligne est recalculée dès que sa quantité, son prix et sa remise sont établis, même
+  bloquée par ailleurs ; une ligne à plusieurs remises ne l'est pas, la formule n'en prend qu'une ;
 - une valeur illisible, ou que la lecture ne reconnaît pas (`valeurs`), n'est jamais devinée.
 """
 
@@ -156,14 +156,14 @@ def _check_line(
     quantity = _require(line.quantity, parse_quantity, "quantité", "absente", block)
     price = _require(line.catalog_price, parse_number, "prix catalogue", "absent", block)
     total = _require(line.line_total, parse_number, "total de ligne", "absent", block)
-    in_units = _in_units(line.unit, block)
-    all_paid = _all_paid(line.free_units, block)
+    _check_unit(line.unit, block)
+    _check_free_units(line.free_units, block)
     discount = _discount(line.discounts, block)
 
     if quantity is None or price is None or discount is None:
         return None, total
     expected = (quantity * price * (1 - discount / 100)).quantize(_CENT, ROUND_HALF_UP)
-    if total is not None and in_units and all_paid and not _agrees(total, expected):
+    if total is not None and not _agrees(total, expected):
         block(
             f"total de ligne incohérent : « {line.line_total} » imprimé, "
             f"{_format_amount(expected)} calculé"
@@ -188,43 +188,35 @@ def _article(ean: str | Illegible | None, references: ReferenceData, block: _Rep
     return None
 
 
-def _in_units(printed: Printed, block: _Report) -> bool:
-    """Vrai si la quantité est en unités ; en colis ou d'unité illisible, elle bloque."""
+def _check_unit(printed: Printed, block: _Report) -> None:
+    """Bloque une quantité en colis, ou dont l'unité est illisible."""
     unit = read(printed)
     if isinstance(unit, Illegible):
         block("unité illisible")
-        return False
-    if unit is not None and unit.upper().startswith(_PACK_UNITS):
+    elif unit is not None and unit.upper().startswith(_PACK_UNITS):
         block(f"quantité en colis : « {unit} »")
-        return False
-    return True
 
 
-def _all_paid(printed: Printed, block: _Report) -> bool:
-    """Vrai si la ligne ne compte aucune unité gratuite ; des unités gratuites la bloquent."""
+def _check_free_units(printed: Printed, block: _Report) -> None:
+    """Bloque une ligne qui compte des unités gratuites, ou dont le nombre est illisible."""
     text = read(printed)
     if text is None:
-        return True
+        return
     count = _parse(text, parse_number, "nombre d'unités gratuites", block)
     if count is not None and count > 0:
         block(f"unités gratuites : « {text} »")
-    return count == 0
 
 
 def _discount(printed: list[str | Illegible], block: _Report) -> Decimal | None:
-    """Remise de la ligne en pourcentage, `0` sans remise ; `None` si illisible ou multiple.
-
-    Une remise imprimée à 0 % n'en est pas une, et ne compte pas parmi plusieurs remises.
-    """
+    """Remise de la ligne en pourcentage, `0` sans remise ; `None` si illisible ou multiple."""
     texts = [text for item in printed if (text := read(item)) is not None]
     rates = [_parse(text, parse_percent, "remise", block) for text in texts]
     if None in rates:
         return None
-    applied = [(text, rate) for text, rate in zip(texts, rates, strict=True) if rate]
-    if len(applied) > 1:
-        block("plusieurs remises : " + ", ".join(f"« {text} »" for text, _ in applied))
+    if len(rates) > 1:
+        block("plusieurs remises : " + ", ".join(f"« {text} »" for text in texts))
         return None
-    return applied[0][1] if applied else Decimal(0)
+    return rates[0] if rates else Decimal(0)
 
 
 def _document_total(
