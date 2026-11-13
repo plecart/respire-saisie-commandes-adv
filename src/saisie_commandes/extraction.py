@@ -41,11 +41,15 @@ attendus du PRD #1 à deux exécutions sur deux, et Commande_1, le plus dense, �
 dix (comparaison des modèles : description de la PR #11).
 """
 
-_MAX_RETRIES = 5
-"""Réessais du SDK sur une erreur temporaire (connexion, délai dépassé, 408, 409, 429, ≥ 500)."""
+_MAX_RETRIES = 3
+"""Réessais du SDK sur une erreur temporaire (connexion, délai dépassé, 408, 409, 429, ≥ 500).
+
+Trois, choix du mainteneur du 2026-11-13 (issue #5, « Décisions ») : un document dont chaque
+tentative expire retient le lot 8 minutes au plus (4 × `_TIMEOUT_SECONDS`), au lieu de 12 à 5.
+"""
 
 _TIMEOUT_SECONDS = 120
-"""Attente maximale d'une tentative ; celle du SDK, 10 minutes, ferait une heure sur six."""
+"""Attente maximale d'une tentative ; celle du SDK, 10 minutes, ferait 40 minutes sur quatre."""
 
 _DPI = 220
 """Résolution du rendu des pages.
@@ -141,7 +145,7 @@ def extractor_from_environment(environ: Mapping[str, str]) -> Callable[[Path], R
             `DEFAULT_MODEL`.
 
     Returns:
-        L'extracteur de `claude_extractor`, sur un client qui réessaie 5 fois une erreur
+        L'extracteur de `claude_extractor`, sur un client qui réessaie 3 fois une erreur
         temporaire et attend 2 minutes au plus la réponse à une tentative.
 
     Raises:

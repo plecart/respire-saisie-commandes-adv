@@ -282,7 +282,7 @@ def test_sans_cle_d_api_l_extracteur_refuse_de_se_construire(environ):
     )
 
 
-def test_le_client_de_l_environnement_reessaie_cinq_fois_et_attend_deux_minutes(monkeypatch):
+def test_le_client_de_l_environnement_reessaie_trois_fois_et_attend_deux_minutes(monkeypatch):
     built = []
 
     class SpyClient(anthropic.Anthropic):
@@ -293,7 +293,7 @@ def test_le_client_de_l_environnement_reessaie_cinq_fois_et_attend_deux_minutes(
     monkeypatch.setattr(anthropic, "Anthropic", SpyClient)
     extractor_from_environment({"ANTHROPIC_API_KEY": "clé-de-test"})
     (client,) = built
-    assert (client.api_key, client.max_retries, client.timeout) == ("clé-de-test", 5, 120)
+    assert (client.api_key, client.max_retries, client.timeout) == ("clé-de-test", 3, 120)
 
 
 @pytest.mark.parametrize(
