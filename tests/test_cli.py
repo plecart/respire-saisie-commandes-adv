@@ -10,9 +10,13 @@ from mails import PDF, PDF_TYPE, mail
 
 from saisie_commandes.champs import DocumentType, RawFields
 from saisie_commandes.cli import main, process_documents
+from saisie_commandes.extraction import ExtractionError
 from saisie_commandes.referentiels import ReferenceData
+from saisie_commandes.resultat import Anomaly, DocumentResult
 
 ROOT = Path(__file__).parents[1]
+COMMANDE_3 = Path(__file__).parent / "donnees" / "extractions" / "Commande_3.json"
+"""Extraction attendue de Commande_3, une commande acceptée."""
 
 NOT_AN_ORDER = RawFields(
     document_type=DocumentType.OTHER,
@@ -26,14 +30,18 @@ NOT_AN_ORDER = RawFields(
 """Champs bruts d'un document qui n'est pas un bon de commande."""
 
 
-def test_sans_extracteur_la_commande_s_arrete_sur_un_message_sans_rien_ecrire(tmp_path, capsys):
+def test_sans_cle_d_api_la_commande_s_arrete_sur_un_message_sans_rien_ecrire(
+    tmp_path, capsys, monkeypatch
+):
+    """Le refus précède la réception : le dossier d'entrée, qui n'existe pas, n'est pas lu."""
+    monkeypatch.delenv("ANTHROPIC_API_KEY", raising=False)
     output = tmp_path / "sorties"
-    code = main([str(tmp_path), str(output)])
+    code = main([str(tmp_path / "entree"), str(output)])
     assert (code, capsys.readouterr().err, output.exists()) == (
         1,
         (
-            "saisie-commandes : aucun extracteur de documents n'est branché, "
-            "aucun document n'a été traité.\n"
+            "saisie-commandes : aucune clé d'API Anthropic : renseigner ANTHROPIC_API_KEY "
+            "dans le fichier .env, aucun document n'a été traité.\n"
         ),
         False,
     )
@@ -126,3 +134,48 @@ def test_un_pdf_temporaire_que_l_extracteur_garde_ouvert_n_interrompt_pas_le_lot
             [document], tmp_path / "sorties", extract, ReferenceData([], [])
         )
     assert list(results) == ["Mail"]
+
+
+def test_un_document_dont_la_lecture_echoue_est_bloque_sans_arreter_le_lot(
+    tmp_path, capsys, monkeypatch
+):
+    """Le document illisible n'a que son motif, sans rien d'établi ni JSON ; l'autre est traité."""
+    received = tmp_path / "entree"
+    received.mkdir()
+    for name in ("Commande_3.pdf", "Illisible.pdf"):
+        (received / name).write_bytes(PDF)
+
+    def extract(document: Path) -> RawFields:
+        if document.stem == "Illisible":
+            raise ExtractionError("réponse tronquée")
+        return RawFields.model_validate_json(COMMANDE_3.read_text(encoding="utf-8"))
+
+    output = tmp_path / "sorties"
+    monkeypatch.chdir(ROOT)
+    code = main([str(received), str(output)], extract=extract)
+    table = (
+        "| Document | Statut | Client | Référence | Livraison | Lignes | Total HT |\n"
+        "| --- | --- | --- | --- | --- | --- | --- |\n"
+        "| Commande_3 | accepté | 10103 | 208532 | 2026-01-13 | 18 | 1 592,99 |\n"
+        "| Illisible | bloqué | — | — | — | — | — |"
+    )
+    report = (output / "rapport.md").read_text(encoding="utf-8")
+    written = sorted(path.name for path in output.iterdir())
+    assert (code, capsys.readouterr().out, report, written) == (
+        0,
+        f"{table}\n",
+        f"{table}\n\n## Illisible\n\n- lecture impossible : réponse tronquée\n",
+        ["Commande_3.json", "rapport.md"],
+    )
+
+
+def test_une_erreur_de_lecture_sans_texte_a_pour_motif_le_nom_de_sa_classe(tmp_path):
+    def extract(document: Path) -> RawFields:
+        raise RuntimeError()
+
+    results = process_documents(
+        [tmp_path / "A.pdf"], tmp_path / "sorties", extract, ReferenceData([], [])
+    )
+    assert results == {
+        "A": DocumentResult((Anomaly("lecture impossible : RuntimeError", blocking=True),))
+    }

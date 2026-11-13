@@ -6,20 +6,24 @@ produite et le rapport `rapport.md`, le terminal le tableau récapitulatif du lo
 référentiels se lisent dans `referentiels/`, sous le dossier courant.
 
 Un mail se traite comme le PDF qu'il porte en seule pièce jointe, écrit le temps de son
-extraction dans un dossier temporaire ; tout autre mail est bloqué sans être extrait.
+extraction dans un dossier temporaire ; tout autre mail est bloqué sans être extrait. Un document
+dont la lecture échoue est bloqué, motif « lecture impossible : … » ; le lot continue.
 
-L'extraction est injectée (`main`, `process_documents`). Aucun extracteur n'est encore branché :
-lancée seule, la commande s'arrête sur un message, sans rien écrire. Elle s'arrête de même sur
-deux documents du même nom sans extension, dont les sorties se confondraient.
+L'extraction est injectée (`main`, `process_documents`) ; à défaut, la commande lit les documents
+par Claude, selon l'environnement (`extraction`). Sans clé d'API, elle s'arrête sur un message,
+sans rien écrire. Elle s'arrête de même sur deux documents du même nom sans extension, dont les
+sorties se confondraient.
 """
 
 import argparse
+import os
 import sys
 import tempfile
 from collections.abc import Callable, Iterable, Sequence
 from pathlib import Path
 
 from saisie_commandes.champs import RawFields
+from saisie_commandes.extraction import MissingApiKey, extractor_from_environment
 from saisie_commandes.reception import (
     RejectedMail,
     is_mail,
@@ -51,11 +55,19 @@ def process_documents(
 
 
 def _process(document: Path, extract: Extractor, references: ReferenceData) -> DocumentResult:
-    """Résultat d'un document : ses champs bruts passés aux règles, ou le motif de son blocage."""
+    """Résultat d'un document : ses champs bruts passés aux règles, ou le motif de son blocage.
+
+    Frontière par document (issue #5, « Décisions ») : une lecture en échec bloque le document
+    seul, le lot continue. Toute erreur levée en lisant les champs bruts, pas seulement
+    `ExtractionError`, a pour motif « lecture impossible : » suivi de son texte, à défaut du nom
+    de sa classe.
+    """
     try:
         fields = _raw_fields(document, extract)
     except RejectedMail as rejection:
         return _blocked(str(rejection))
+    except Exception as error:  # noqa: BLE001 (frontière par document, voir la docstring)
+        return _blocked(f"lecture impossible : {str(error) or type(error).__name__}")
     return apply_rules(fields, references)
 
 
@@ -75,14 +87,15 @@ def _raw_fields(document: Path, extract: Extractor) -> RawFields:
 
 
 def _blocked(reason: str) -> DocumentResult:
-    """Résultat d'un document bloqué avant l'extraction ou les règles : son motif, rien d'établi."""
+    """Résultat d'un document bloqué avant les règles : son motif, rien d'établi."""
     return DocumentResult((Anomaly(reason, blocking=True),))
 
 
 def main(argv: Sequence[str] | None = None, extract: Extractor | None = None) -> int:
-    """Point d'entrée de `saisie-commandes` ; rend le code de sortie, non nul sans extracteur.
+    """Point d'entrée de `saisie-commandes` ; rend le code de sortie, non nul si le lot est refusé.
 
-    `argv` remplace les arguments de la ligne de commande ; `extract` est l'extracteur injecté.
+    `argv` remplace les arguments de la ligne de commande ; `extract` est l'extracteur injecté,
+    à défaut celui de `extractor_from_environment` sur `os.environ`.
     """
     parser = argparse.ArgumentParser(
         prog="saisie-commandes",
@@ -94,7 +107,10 @@ def main(argv: Sequence[str] | None = None, extract: Extractor | None = None) ->
     )
     args = parser.parse_args(argv)
     if extract is None:
-        return _refuse("aucun extracteur de documents n'est branché")
+        try:
+            extract = extractor_from_environment(os.environ)
+        except MissingApiKey as error:
+            return _refuse(str(error))
     documents = receive(args.entree)
     if shared := shared_names(documents):
         return _refuse(
