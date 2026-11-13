@@ -62,14 +62,15 @@ def _process(document: Path, extract: Extractor, references: ReferenceData) -> D
 def _raw_fields(document: Path, extract: Extractor) -> RawFields:
     """Champs bruts d'un document ; ceux d'un mail sont ceux de son seul PDF joint.
 
-    Le PDF d'un mail s'écrit dans un dossier temporaire, supprimé après l'extraction.
+    Le PDF d'un mail s'écrit dans un dossier temporaire, supprimé après l'extraction ; un échec
+    de cette suppression (fichier encore ouvert sous Windows) n'interrompt pas le lot.
 
     Raises:
         RejectedMail: le document est un mail qui ne porte pas un seul PDF.
     """
     if not is_mail(document):
         return extract(document)
-    with tempfile.TemporaryDirectory() as directory:
+    with tempfile.TemporaryDirectory(ignore_cleanup_errors=True) as directory:
         return extract(save_pdf_attachment(document, Path(directory)))
 
 

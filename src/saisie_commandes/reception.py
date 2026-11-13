@@ -6,8 +6,8 @@ les autres sont ignorés. Les documents se rendent dans l'ordre de leurs noms, q
 système de fichiers. Deux documents au même nom sans extension se repèrent (`shared_names`).
 
 Un mail ne se lit que par ses pièces jointes, au sens de `EmailMessage.iter_attachments` : une
-image incluse dans le corps n'en est pas une, un message transféré en est une. Son corps n'est
-jamais lu. Le mail dont la seule pièce jointe est un PDF se traite comme ce PDF, que
+image incluse dans un `multipart/related` n'en est pas une, un message transféré en est une.
+Son corps n'est jamais lu. Le mail dont la seule pièce jointe est un PDF se traite comme ce PDF, que
 `save_pdf_attachment` écrit dans un dossier ; tout autre mail est rejeté (`RejectedMail`).
 
 Tout ce que porte un mail est non fiable : une pièce jointe faite de parties (message transféré,
