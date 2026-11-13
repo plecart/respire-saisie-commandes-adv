@@ -1,18 +1,34 @@
-"""Tests des référentiels : normalisation des noms et rapprochement client."""
+"""Tests des référentiels : normalisation des noms, rapprochement client, article par EAN."""
 
 import pytest
 
-from saisie_commandes.referentiels import ClientMatch, ClientStatus, ReferenceData, normalize_name
+from saisie_commandes.referentiels import (
+    ClientMatch,
+    ClientStatus,
+    ReferenceData,
+    is_valid_ean13,
+    normalize_name,
+)
 
 
 def client(client_id: str, name: str, postal_code: str, active: str = "oui") -> dict[str, str]:
-    """Fiche client réduite aux colonnes du référentiel que lit la recherche."""
+    """Fiche client réduite à son identifiant et aux colonnes que lit la recherche."""
     return {"id_client": client_id, "nom": name, "code_postal": postal_code, "actif": active}
+
+
+def article(sku: str, ean: str) -> dict[str, str]:
+    """Fiche article réduite à son SKU et à son EAN."""
+    return {"SKU": sku, "EAN": ean}
 
 
 def with_clients(*clients: dict[str, str]) -> ReferenceData:
     """Référentiels réduits à ces fiches clients."""
-    return ReferenceData(clients=clients)
+    return ReferenceData(clients=clients, articles=())
+
+
+def with_articles(*articles: dict[str, str]) -> ReferenceData:
+    """Référentiels réduits à ces fiches articles."""
+    return ReferenceData(clients=(), articles=articles)
 
 
 @pytest.mark.parametrize(
@@ -89,3 +105,45 @@ def test_un_actif_l_emporte_sur_un_inactif_du_meme_nom():
     inactive = client("10111", "GRANDE PHARMACIE DU LAC", "74000", active="non")
     found = with_clients(active, inactive).find_client("GRANDE PHARMACIE DU LAC", "74000")
     assert found == ClientMatch(ClientStatus.ACTIVE, active)
+
+
+def test_article_retrouve_par_son_ean():
+    shampoing = article("APSHS60", "3000000000014")
+    assert with_articles(shampoing).find_article("3000000000014") == shampoing
+
+
+@pytest.mark.parametrize(
+    "ean",
+    [
+        pytest.param("3000000000021", id="absent-du-referentiel"),
+        pytest.param("", id="vide"),
+    ],
+)
+def test_article_inconnu(ean):
+    data = with_articles(article("APSHS60", "3000000000014"), article("BELLBOX21", ""))
+    assert data.find_article(ean) is None
+
+
+@pytest.mark.parametrize(
+    "ean",
+    [
+        pytest.param("3000000000014", id="cle-juste"),
+        pytest.param("0012345678905", id="zero-de-tete"),
+    ],
+)
+def test_cle_ean13_valide(ean):
+    assert is_valid_ean13(ean)
+
+
+@pytest.mark.parametrize(
+    "ean",
+    [
+        pytest.param("3000000000015", id="cle-fausse"),
+        # Somme pondérée divisible par 10 : seule la longueur écarte ces deux-là.
+        pytest.param("300000000009", id="douze-chiffres"),
+        pytest.param("30000000000140", id="quatorze-chiffres"),
+        pytest.param("300000000001A", id="lettre"),
+    ],
+)
+def test_cle_ean13_invalide(ean):
+    assert not is_valid_ean13(ean)
