@@ -36,7 +36,7 @@ def readable(printed: Printed) -> str | None:
 
 
 def parse_number(text: str) -> Decimal | None:
-    """Nombre positif à la française : espaces et symbole euro ignorés, virgule décimale.
+    """Nombre positif ou nul à la française : espaces et symbole euro ignorés, virgule décimale.
 
     Un point décimal est admis, sauf suivi d'exactement trois chiffres : « 1.000 » vaut 1 ou 1000
     selon que le point est décimal ou de milliers. Aucun document fourni n'imprime de point dans
