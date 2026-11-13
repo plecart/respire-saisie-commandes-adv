@@ -36,8 +36,9 @@ DEFAULT_MODEL = "claude-haiku-5-5"
 """Modèle utilisé quand `CLAUDE_MODEL` n'est pas renseigné.
 
 Le moins cher qui lit correctement les documents fournis (ADR 0001 § 4) : comparé le 2026-11-13
-sur les cinq PDF de `exemples/`, Haiku 5.5 reproduit la table des résultats attendus du PRD #1 à
-trois exécutions sur trois (comparaison des modèles : description de la PR #11).
+sur les cinq PDF de `exemples/`, pages à `_DPI`, Haiku 5.5 reproduit la table des résultats
+attendus du PRD #1 à deux exécutions sur deux, et Commande_1, le plus dense, à dix lectures sur
+dix (comparaison des modèles : description de la PR #11).
 """
 
 _MAX_RETRIES = 5
