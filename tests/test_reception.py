@@ -287,6 +287,16 @@ def test_une_piece_jointe_nommee_par_un_chemin_s_ecrit_dans_le_dossier_sous_son_
         pytest.param("devis", UNNAMED, id="sans-extension-pdf"),
         pytest.param(".cache.pdf", UNNAMED, id="point-initial"),
         pytest.param("a.pdf.", UNNAMED, id="point-final"),
+        pytest.param("CON.pdf", UNNAMED, id="peripherique-con"),
+        pytest.param("nul.PDF", UNNAMED, id="peripherique-nul-minuscules"),
+        pytest.param("PRN.a.pdf", UNNAMED, id="peripherique-prn-double-extension"),
+        pytest.param("AUX .pdf", UNNAMED, id="peripherique-aux-espace"),
+        pytest.param("COM1.pdf", UNNAMED, id="peripherique-com1"),
+        pytest.param("lpt9.pdf", UNNAMED, id="peripherique-lpt9"),
+        pytest.param("COM¹.pdf", UNNAMED, id="peripherique-com-exposant"),
+        pytest.param("CONSOLE.pdf", "CONSOLE.pdf", id="garde-prefixe-de-peripherique"),
+        pytest.param("COM10.pdf", "COM10.pdf", id="garde-com10"),
+        pytest.param("Commande_NUL.pdf", "Commande_NUL.pdf", id="garde-peripherique-en-fin"),
     ],
 )
 def test_un_pdf_joint_garde_son_nom_s_il_a_une_forme_sure_sinon_se_nomme_piece_jointe(
