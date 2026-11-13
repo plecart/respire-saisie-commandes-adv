@@ -1,0 +1,236 @@
+﻿RAYON,CATEGORY,SUBCATEGORY,L4,L5,Format,Fragrance,SKU,EAN,Désignation,Date de lancement,Année de lancement,Archived,Echantillon,universal_sku
+Hygiène,Soins capillaires,Solide,Solide,,50g,,APSHS60,3000000000014,Après-shampoing solide,20/7/2021,2021,,,APSHSD60
+Hygiène,Soins capillaires,Solide,Solide,,50g,,APSHSD60,3000000000021,Après-shampoing solide,20/7/2021,2021,,,APSHSD60
+Skincare,Bodycare,Lèvres,Lèvres,,4g,,BAL,3000000000038,Baume à lèvres,25/10/2023,2023,,,BAL
+Skincare,Bodycare,Corps & Mains,Corps & Mains,,200ml,,BAUMCO,3000000000045,Baume Corps Nourrissant - 200mL,8/11/2021,2021,,,BAUMCO
+Skincare,Bodycare,Corps & Mains,Corps & Mains,,200ml,,BAUMCORECH,3000000000052,Recharge Baume Corps Nourrissant - 200mL,8/11/2021,2021,,,BAUMCORECH
+Coffret,Mixte,,,,,,BELLBOX21,,Bell Box,1/9/2021,2021,TRUE,,BELLBOX21
+Skincare,Facecare,Nettoyants,Exfoliant,Brume,,,BRMAHA,3000000000069,Brume exfoliante AHA,01/09/2025,2025,,,BRMAHA
+Accessoires,Accessoires,,,,,,BROSBOIS,,Brosse à dents,24/3/2022,2022,TRUE,,BROSBOIS
+Suncare,Suncare,Daily Protect,Liquide,,75ml,Monoï,BRSSPF50-75,3000000000076,Brume Solaire Bouclier Urbain SPF 50,2/3/2026,2026,,,BRSSPF50-75
+Suncare,Suncare,Daily Protect,Liquide,,75ml,Monoï,SUSUPSBRU02,3000000000083,Brume Solaire Bouclier Urbain SPF 50,,,,,BRSSPF50-76
+Skincare,Facecare,Eclat,Stick,Stick,15ml,,CDY15,3000000000090,Contour des yeux,01/09/2025,2025,,,CDY15
+Skincare,Bodycare,Corps & Mains,Crème,,50ml,,CMN50,3000000000106,Crème mains nourrissante,16/9/2022,2022,,,CMN50
+Skincare,Bodycare,Corps & Mains,Crème,,50ml,,CMN50-ARCHIVES,,Crème Main Nourrissante,14/07/2024,2024,TRUE,,CMN50
+Echantillon,Echantillon,Echantillon,Echantillon,Echantillon,Echantillon,Echantillon,CMRHINT_ECH2,,Echantillon Crème Riche Hydratation Intense,,,,TRUE,CMRHINT_ECH2
+Skincare,Facecare,Hydratation,Crème,,50ml,,CMRHINT50,3000000000113,Crème Riche Hydratation Intense,18/6/2024,2024,,,CMRHINT50
+Skincare,Facecare,Hydratation,Crème,,50ml,,CMVI50,3000000000120,Crème visage nourissante - 50 mL,8/11/2021,2021,,,CMRHINT50
+Skincare,Facecare,Hydratation,Crème,,50ml,,CMVIRECH,3000000000137,Recharge crème visage nourissante - 50 mL,8/11/2021,2021,,,CMRHINT50
+Skincare,Bodycare,Coffret,Coffret,,,,COFCMBAL,,COFFRET SOIN MAINS & LÈVRES,25/10/2023,2023,TRUE,,COFCMBAL
+Coffret,Déodorant,Coffret,Coffret,,,,COFDEOSTICK,,Coffret Deo solide exclu sephora,8/9/2021,2021,TRUE,,COFDEOSTICK
+Coffret,Mixte,,,,,,COFDSO21,,Coffret Noël 1 - Solide,1/1/2022,2022,TRUE,,COFDSO21
+Coffret,Mixte,,,,,,COFEHB,,Coffret les essentiels hygiène beauté,1/9/2020,2020,TRUE,,COFEHB
+Coffret,Mixte,,,,,,COFESSENT,,RESPIRE Coffret Essentiels Noël (2023),1/11/2023,2023,TRUE,,COFESSENT
+Coffret,Facecare,Mixte,Mixte,,,,COFFRETDENOEL2024,3000000000144,Coffret de Noel 2024,10/11/2024,2024,,,COFFRETDENOEL2024
+Coffret,Facecare,Mixte,Mixte,,,,COFFRETNOEL2024,3000000000151,Coffret de Noel 2024,10/11/2024,2024,,,COFFRETNOEL2024
+Coffret,Mixte,,,,,,COFICONIQUE,,RESPIRE Coffret Iconique Noël (2023),04/11/2023,2023,TRUE,,COFICONIQUE
+Coffret,Mixte,,,,,,COFMINI,,"Coffret 3 minis (shamp, savon, nettoyant visage) > exclu Sepho",1/9/2021,2021,TRUE,,COFMINI
+Coffret,Mixte,,,,,,COFMOUSSE,,Coffret Découverte Pousse-Mousse,8/6/2021,2021,TRUE,,COFMOUSSE
+Coffret,Mixte,,,,,,COFMOUSSERECH,,Recharge pousse-mousse,8/6/2021,2021,TRUE,,COFMOUSSERECH
+Coffret,Mixte,,,,,,COFNO2,,Coffret Noël Les Indispensables,1/11/2020,2020,TRUE,,COFNO2
+Coffret,Mixte,,,,,,COFNO3,,Coffret Noël Découverte,1/11/2020,2020,TRUE,,COFNO3
+Coffret,Mixte,,,,,,COFSKINCARE,,RESPIRE Coffret Skincare Noël (2023),1/11/2023,2023,TRUE,,COFSKINCARE
+Coffret,,,,,,,COFSOLA,,Coffret Solaire,1/3/2020,2020,TRUE,,COFSOLA
+Coffret,Mixte,,,,,,COFSOLI,,Coffret Solide,1/1/2022,2022,TRUE,,COFSOLI
+Coffret,Mixte,,,,,,COFSOLIN,,RESPIRE Coffret Solide Noël (2023),01/11/2023,2023,TRUE,,COFSOLIN
+Coffret,Mixte,,,,,,COFSOLIPOCH,,Coffret Solide - v2 (avec pochette),1/1/2022,2022,TRUE,,COFSOLIPOCH
+Coffret,Mixte,,,,,,COFSOVI,,Coffret soins solides,1/9/2020,2020,TRUE,,COFSOVI
+Accessoires,Accessoires,,,,,,COTREU,,Coton réutilisable vrac,1/10/2020,2020,TRUE,,COTREU
+Suncare,Suncare,Protection solaire,Lait,,100ml,,CRESOL30-100,3000000000168,Crème Solaire SPF 30 - 100 mL,30/3/2023,2023,,,CRESOL30-100
+Suncare,Suncare,Protection solaire,Lait,,100ml,,CRESOL50-100,3000000000175,Crème Solaire SPF 50 - 100 mL,30/3/2023,2023,,,CRESOL50-100
+Echantillon,Echantillon,Echantillon,Echantillon,Echantillon,Echantillon,Echantillon,CRESOL50-ECH2,,Echantillon Crème Solaire SPF 50 - 100 mL,,,,TRUE,CRESOL50-ECH2
+Suncare,Suncare,Daily Protect,Unitaire,Stick,15g,,CRESOLST50-15,3000000000182,Stick solaire Anti-Taches SPF50+ 15g,28/02/2025,2025,,,CRESOLST50-15
+Suncare,Suncare,Daily Protect,Unitaire,Stick,15g,,CRESOLST50-15_OLD,3000000000199,Stick solaire Anti-Taches SPF50+ 15g,28/02/2025,2025,,,CRESOLST50-15_OLD
+Echantillon,Echantillon,Echantillon,Echantillon,Echantillon,Echantillon,Echantillon,CRESOLST50-15-TMP,,Echantillon Stick solaire Anti-Taches SPF50+ 15g,,,,TRUE,CRESOLST50-15-TMP
+Hygiène,Déodorant,Roll-on,Unitaire,,15ml,Citron Bergamotte,DCB15,3000000000205,Deodorant RO Citron Bergamotte 15ml,14/5/2019,2019,,,DCB15
+Hygiène,Déodorant,Roll-on,Recharge,,150ml,Citron Bergamotte,DCB150,3000000000212,Recharge Citron Bergamotte 150ml,23/10/2019,2019,,,DCB150
+Hygiène,Déodorant,Roll-on,Unitaire,,50ml,Citron Bergamotte,DCB50,3000000000229,Deodorant RO Citron Bergamotte 50ml,14/5/2019,2019,,,DCB50
+Hygiène,Soins dentaires,Liquide,Liquide,,75g,,DENTBL75,3000000000236,Dentifrice Blancheur naturelle,17/10/2022,2022,,,DENTBN75
+Hygiène,Soins dentaires,Liquide,Liquide,,75g,,DENTBL75-TMP,3000000000243,Dentifrice Blancheur naturelle,10/06/2024,2024,,,DENTBN75
+Hygiène,Soins dentaires,Liquide,Liquide,,75g,,DENTBN75,3760368741584,Dentifrice Blancheur naturelle,17/10/2022,2022,,,DENTBN75
+Hygiène,Soins dentaires,Liquide,Liquide,,75g,,DENTFI75,3000000000250,Dentifrice Fraîcheur intense,17/10/2022,2022,,,DENTFI75
+Hygiène,Soins dentaires,Liquide,Liquide,,75g,,DENTFR75,3000000000267,Dentifrice Fraîcheur intense,17/10/2022,2022,,,DENTFI75
+Hygiène,Soins dentaires,Liquide,Liquide,,75g,,DENTM75,3000000000274,Dentifrice Soin Complet,19/2/2020,2020,,,DENTSC75
+Hygiène,Soins dentaires,Liquide,Liquide,,75g,,DENTSC75,3000000000281,Dentifrice Soin Complet,19/2/2020,2020,,,DENTSC75
+Hygiène,Soins dentaires,Solide,Solide,,60 pastilles,,DENTSOL60,3000000000298,Dentifrice 60 pastilles,26/11/2020,2020,,,DENTSOL60
+Hygiène,Soins dentaires,Solide,Solide,,10 pastilles,,DENTSOLECH10E,,Dentifrice solide échantillon 10 pastilles  - étui,26/11/2020,2020,TRUE,,DENTSOLECH10E
+Hygiène,Soins dentaires,Solide,Solide,,,,DENTSOLECH2,3000000000304,Echantillon Dent. Solide 2 past. + flyer,26/11/2020,2020,,,DENTSOLECH2
+Hygiène,Soins dentaires,Solide,Solide,,120 pastilles,,DENTSOLRE,3000000000311,Recharge dentifrice solide,26/11/2020,2020,,,DENTSOLRE
+Hygiène,Déodorant,Roll-on,Unitaire,,15ml,Fleur d'oranger,DFO15,3000000000328,Deodorant RO Fleur d'oranger 15ml,27/8/2019,2019,,,DFO15
+Hygiène,Déodorant,Roll-on,Recharge,,150ml,Fleur d'oranger,DFO150,3000000000335,Recharge Fleur d'oranger 150ml,23/10/2019,2019,,,DFO150
+Hygiène,Déodorant,Roll-on,Unitaire,,50ml,Fleur d'oranger,DFO50,3000000000342,Deodorant RO Fleur d'oranger 50ml,27/8/2019,2019,,,DFO50
+Hygiène,Déodorant,Roll-on,Recharge,,150ml,Douceur Monoi,DRODM150,3000000000359,Eco-Recharge Déodorant Roll-on Douceur Monoï 150ml,15/3/2023,2023,,,DROSDM150
+Hygiène,Déodorant,Roll-on,Unitaire,,50ml,Douceur Monoi,DRODM50,3000000000366,Déodorant Roll-on Douceur Monoï 50ml,15/3/2023,2023,,,DROSDM50
+Hygiène,Déodorant,Roll-on,Recharge,,150ml,Fraicheur d'Aloe,DROFA150,3000000000373,Eco-Recharge Déodorant Roll-on Fraîcheur d'aloe 150ml,15/3/2023,2023,,,DROSFA150
+Hygiène,Déodorant,Roll-on,Unitaire,,50ml,Fraicheur d'Aloe,DROFA50,3000000000380,Déodorant Roll-on Fraîcheur d'aloe 50ml,15/3/2023,2023,,,DROSFA50
+Hygiène,Déodorant,Roll-on,Unitaire,,15ml,Fleur de Coton,DROFC15,3000000000397,Déodorant Roll-on Fleur de coton 15ml,15/3/2023,2023,,,DROFC15
+Hygiène,Déodorant,Roll-on,Recharge,,150ml,Fleur de Coton,DROFC150,3000000000403,Eco-Recharge Déodorant Roll-on Fleur de coton 150ml,15/3/2023,2023,,,DROSFC150
+Hygiène,Déodorant,Roll-on,Unitaire,,50ml,Fleur de Coton,DROFC50,3000000000410,Déodorant Roll-on Fleur de coton 50ml,15/3/2023,2023,,,DROFC50
+Hygiène,Déodorant,Roll-on,Unitaire,,15ml,,DROPS15,3000000000427,Déodorant Roll-on peau sensible 15mL,13/03/2024,2024,,,DROPS15
+Hygiène,Déodorant,Roll-on,Recharge,,150ml,,DROPS150,3000000000434,Eco-Recharge Déodorant Roll-on peau sensible 150ml,13/03/2024,2024,,,DROSPS150
+Hygiène,Déodorant,Roll-on,Unitaire,,50ml,,DROPS50,3000000000441,Déodorant Roll-on peau sensible 50mL,13/03/2024,2024,,,DROPS50
+Hygiène,Déodorant,Roll-on,Unitaire,,15ml,Douceur Monoi,DROSDM15,3000000000458,Déodorant Roll-on douceur monoi 15mL Sérigraphié ,09/08/2024,2024,,,DROSDM15
+Hygiène,Déodorant,Roll-on,Recharge,,150ml,Douceur Monoi,DROSDM150,3000000000465,Eco-Recharge Déodorant Roll-on douceur monoi 150ml Sérigraphié ,09/08/2024,2024,,,DROSDM150
+Hygiène,Déodorant,Roll-on,Unitaire,,50ml,Douceur Monoi,DROSDM50,3000000000472,Déodorant Roll-on douceur monoi 50mL Sérigraphié ,18/07/2024,2024,,,DROSDM50
+Hygiène,Déodorant,Roll-on,Unitaire,,15ml,Fraicheur d'Aloe,DROSFA15,3000000000489,Déodorant Roll-on fraicheur d'Aloë 15mL Sérigraphié ,,,,,DROSFA15
+Hygiène,Déodorant,Roll-on,Recharge,,150ml,Fraicheur d'Aloe,DROSFA150,3000000000496,Eco-Recharge Déodorant Roll-on fraicheru d'Aloë 150ml Sérigraphié ,05/09/2024,2024,,,DROSFA150
+Hygiène,Déodorant,Roll-on,Unitaire,,50ml,Fraicheur d'Aloe,DROSFA50,3760368741874,Déodorant Roll-on fraîcheur d'Aloë 50mL Sérigraphié ,06/09/2024,2024,,,DROSFA50
+Hygiène,Déodorant,Roll-on,Unitaire,,15ml,Fleur de Coton,DROSFC15,3760368740228,Déodorant Roll-on  fleur de coton15mL Sérigraphié ,27/08/2024,2024,,,DROSFC15
+Hygiène,Déodorant,Roll-on,Recharge,,150ml,Fleur de Coton,DROSFC150,3760368741935,Eco-Recharge Déodorant Roll-on  fleur de coton150ml Sérigraphié ,30/08/2024,2024,,,DROSFC150
+Hygiène,Déodorant,Roll-on,Unitaire,,50ml,Fleur de Coton,DROSFC50,3760368741867,Déodorant Roll-on fleur de coton 50mL Sérigraphié ,30/07/2024,2024,,,DROSFC50
+Hygiène,Déodorant,Roll-on,Unitaire,,15ml,Figue fraîche,DROSFF15,3000000000502,Déodorant Roll-on figue fraiche 15mL Sérigraphié ,,,,,DROSFF15
+Hygiène,Déodorant,Roll-on,Recharge,,150ml,Figue fraîche,DROSFF150,3000000000519,Eco-Recharge Déodorant Roll-on  figue fraiche 150ml Sérigraphié ,22/07/2024,2024,,,DROSFF150
+Hygiène,Déodorant,Roll-on,Unitaire,,50ml,Figue fraîche,DROSFF50,3000000000526,Déodorant Roll-on figue fraiche 50mL Sérigraphié ,08/08/2024,2024,,,DROSFF50
+Hygiène,Déodorant,Roll-on,Unitaire,,15ml,,DROSPS15,3000000000533,Déodorant Roll-on peau sensible 15mL Sérigraphié ,06/09/2024,2024,,,DROSPS15
+Hygiène,Déodorant,Roll-on,Recharge,,150ml,,DROSPS150,3000000000540,Eco-Recharge Déodorant Roll-on peau sensible 150ml Sérigraphié ,06/09/2024,2024,,,DROSPS150
+Hygiène,Déodorant,Roll-on,Unitaire,,50ml,,DROSPS50,3000000000557,Déodorant Roll-on peau sensible 50mL Sérigraphié ,12/11/2024,2024,,,DROSPS50
+Hygiène,Déodorant,Roll-on,Unitaire,,15ml,Rose Pivoine,DROSRP15,3000000000564,Déodorant Roll-on rose pivoine 15mL Sérigraphié ,,,,,DROSRP15
+Hygiène,Déodorant,Roll-on,Recharge,,150ml,Rose Pivoine,DROSRP150,3000000000571,Eco-Recharge Déodorant Roll-on rose pivoine 150ml Sérigraphié ,,,,,DROSRP150
+Hygiène,Déodorant,Roll-on,Unitaire,,50ml,Rose Pivoine,DROSRP50,3000000000588,Déodorant Roll-on rose pivoine 50mL Sérigraphié ,,,,,DROSRP50
+Hygiène,Déodorant,Roll-on,Recharge,,150ml,Thé Blanc,DROTB150,3000000000595,Eco-Recharge Déodorant Roll-on Thé blanc 150ml,15/3/2023,2023,,,DROSFF150
+Hygiène,Déodorant,Roll-on,Unitaire,,50ml,Thé Blanc,DROTB50,3000000000601,Déodorant Roll-on Thé blanc 50ml -,15/3/2023,2023,,,DROSFF50
+Hygiène,Déodorant,Stick,Carton,Stick,10g,Fleur de Coton,DSOFC10,3000000000618,Mini déo solide Fleur de coton,8/9/2021,2021,,,DSOFC10
+Hygiène,Déodorant,Stick,Unitaire,Carton,20g,Fleur de Coton,DSOFC20,3000000000625,Déodorant stick Fleur de Coton 20g - Vente,14/02/2025,2025,,,DSOFC20
+Hygiène,Déodorant,Stick,Carton,Stick,10g,Peche blanche,DSOPB10,3000000000632,Déodorant stick carton Pêche blanche 10g,11/5/2022,2022,,,DSOPB10
+Hygiène,Déodorant,Stick,Carton,Stick,50g,Douceur Monoi,DSTCDM50,3000000000649,Déodorant stick carton Douceur Monoï 50g,26/4/2022,2022,,,DSTCDM50
+Hygiène,Déodorant,Stick,Carton,Stick,50g,Fleur de Coton,DSTCFC50,3770018642451,Déodorant stick carton fleur de coton 50gr,8/9/2021,2021,,,DSTCFC50
+Hygiène,Déodorant,Stick,Carton,Stick,50g,Fleur d'oranger,DSTCFO50,3000000000656,Déodorant stick carton Fleur d'oranger 50g,2/10/2023,2023,,,DSTCFO50
+Hygiène,Déodorant,Stick,Carton,Stick,50g,Menthe Eucalyptus,DSTCME50,3000000000663,Déodorant stick carton Menthe Eucalyptus 50g,2/10/2023,2023,,,DSTCME50
+Hygiène,Déodorant,Stick,Carton,Stick,50g,Peche blanche,DSTCPB50,3000000000670,Déodorant stick carton Pêche blanche 50g,11/5/2022,2022,,,DSTCPB50
+Hygiène,Déodorant,Stick,Carton,Stick,50g,Pomme grenade,DSTCPG50,3000000000687,Déodorant stick carton pomme-grenade,8/9/2021,2021,,,DSTCPG50
+Hygiène,Déodorant,Stick,Carton,Stick,50g,Rose Pivoine,DSTCRP50,3000000000694,Déodorant stick carton Rose Pivoine 50g,26/9/2022,2022,,,DSTCRP50
+Hygiène,Déodorant,Stick,Unitaire,Stick,50g,Douceur Monoi,DSTPDM50,3760368740747,Déodorant stick Douceur Monoï 50g,23/3/2024,2024,,,DSTPDM50
+Hygiène,Déodorant,Stick,Unitaire,Stick,50g,Embruns Cèdre,DSTPEC50V2,3000000000700,Déodorant stick Embruns Cèdre,30/9/2025,2025,,,DSTPEC50
+Hygiène,Déodorant,Stick,Unitaire,Stick,50g,Embruns Cèdre,DSTPEC50,3760368742338,Déodorant stick Embruns Cèdre,30/9/2025,2025,,,DSTPEC50
+Hygiène,Déodorant,Stick,Unitaire,Stick,50g,Fleur de Coton,DSTPFC50,3760368740730,Déodorant stick Fleur de coton 50g,23/3/2024,2024,,,DSTPFC50
+Hygiène,Déodorant,Stick,Unitaire,Stick,50g,Menthe Eucalyptus,DSTPME50V2,3000000000717,Déodorant stick Menthe Eucalyptus 50g,23/3/2024,2024,,,DSTPME50
+Hygiène,Déodorant,Stick,Unitaire,Stick,50g,Menthe Eucalyptus,DSTPME50,3760368740754,Déodorant stick Menthe Eucalyptus 50g,23/3/2024,2024,,,DSTPME50
+Hygiène,Déodorant,Stick,Unitaire,Stick,50g,Vanille Tonka,DSTPVT50,3760368742772,Déodorant stick plastique Vanille Tonka 50g ,,2026,,,DSTPVT50
+Hygiène,Déodorant,Stick,Recharge,Recharge,50g,Douceur Monoi,DSTPRECHDM,3760368742314,Recharge déodorant stick Douceur Monoï 50gr,01/05/2025,2025,,,DSTPRECHDM
+Hygiène,Déodorant,Stick,Recharge,Recharge,50g,Embruns Cèdre,DSTPRECHEC,3760368742321,Recharge déodorant stick Embruns Cèdre 50g,01/09/2025,2025,,,DSTPRECHEC
+Hygiène,Déodorant,Stick,Recharge,Recharge,50g,Fleur de Coton,DSTPRECHFC,3760368740884,Recharge déodorant stick Fleur de coton 50g,23/3/2024,2024,,,DSTPRECHFC
+Hygiène,Déodorant,Stick,Recharge,Recharge,50g,Menthe Eucalyptus,DSTPRECHME,3760368742505,Recharge déodorant stick Menthe Eucalyptus 50gr,01/05/2025,2025,,,DSTPRECHME
+Hygiène,Déodorant,Stick,Recharge,Recharge,50g,Rose Pivoine,DSTPRECHRP,3760368741614,Recharge déodorant stick Rose Pivoine 50gr,01/05/2025,2025,,,DSTPRECHRP
+Hygiène,Déodorant,Stick,Recharge,Recharge,50g,Vanille Tonka,DSTPRECHVT,3760368742796,Recharge déodorant stick plastique Vanille Tonka 50g ,,2026,,,DSTPRECHVT
+Hygiène,Déodorant,Stick,Unitaire,Stick,50g,Rose Pivoine,DSTPRP50,3760368741577,Déodorant stick Rose Pivoine,13/9/2024,2024,,,DSTPRP50
+Hygiène,Déodorant,Stick,Unitaire,Stick,50g,Yuzu Basilic,DSTPYB50V2,3000000000724,Déodorant Stick Yuzu Basilic 50g,01/03/2025,2025,,,DSTPYB50
+Hygiène,Déodorant,Stick,Unitaire,Stick,50g,Yuzu Basilic,DSTPYB50,3000000000731,Déodorant Stick Yuzu Basilic 50g,01/03/2025,2025,,,DSTPYB50
+Hygiène,Déodorant,Roll-on,Unitaire,,15ml,Thé Vert,DTV15,3000000000748,Deodorant RO Thé Vert 15ml,14/5/2019,2019,,,DTV15
+Hygiène,Déodorant,Roll-on,Recharge,,150ml,Thé Vert,DTV150,3000000000755,Recharge Thé Vert 150ml,23/10/2019,2019,,,DTV150
+Hygiène,Déodorant,Roll-on,Unitaire,,50ml,Thé Vert,DTV50,3000000000762,Deodorant RO Thé Vert 50ml,14/5/2019,2019,,,DTV50
+Skincare,Facecare,Nettoyants,Autres,,200ml,,EAUMIC200,3000000000779,Eau Micellaire,8/11/2021,2021,,,EAUMIC200
+Skincare,Facecare,Nettoyants,Autres,,200ml,,EAUMIC200_OLD,3000000000786,Eau Micellaire,8/11/2021,2021,,,EAUMIC200
+Hygiène,Nettoyants corps,Solide,Savons,,100g,,EXSC100,3000000000793,Soin Exfoliant Solide,7/4/2022,2022,,,EXSC100
+Hygiène,Nettoyants corps,Solide,Savons,,30g,,EXSC30,3000000000809,Mini soin exfoliant solide corps,1/5/2022,2022,,,EXSC30
+Skincare,Facecare,Hydratation,Fluide,Crème,50ml,,FHINT30-50,3760368742383,Fluide hydratant SPF30,27/07/2025,2025,,,FHINT30-50
+Skincare,Facecare,Nettoyants,Gelée,,140mL,,GELACTNET140,3000000000816,Gelée Active Nettoyante,29/06/2025,2025,,,GELACTNET140
+Echantillon,Echantillon,Echantillon,Echantillon,Echantillon,Echantillon,Echantillon,GELCHINT_ECH2,,Echantillon Gel Crème Hydratation Intense,,,,TRUE,GELCHINT_ECH2
+Skincare,Facecare,Hydratation,Crème,,15ml,,GELCHINT15,3000000000823,Gel Crème Hydratation Intense,18/6/2024,2024,,,GELCHINT15
+Skincare,Facecare,Hydratation,Crème,,50ml,,GELCHINT50,3760368740952,Gel Crème Hydratation Intense,18/6/2024,2024,,,GELCHINT50
+Skincare,Facecare,Hydratation,Crème,,50ml,,GELCMNAT50,3000000000830,Gel crème visage naturel 50ml,8/6/2020,2020,,,GELCHINT50
+Hygiène,Nettoyants corps,Liquide,Liquide,,250ml,Pamplemousse Romarin,GELDOUPR,,Gel douche liquide - 250mL - Pamplemousse Romarin,16/3/2021,2021,TRUE,,GELDOUPR
+Hygiène,Nettoyants corps,Liquide,Liquide,,1L,Pamplemousse Romarin,GELDOUPRRECH,,Recharge gel douche - 1L - Pamplemousse Romarin,16/3/2021,2021,TRUE,,GELDOUPRRECH
+Hygiène,Nettoyants corps,Liquide,Liquide,,250ml,Pomme Sauvage,GELDOUPS,,Gel douche liquide - 250mL - Pomme Sauvage,16/3/2021,2021,TRUE,,GELDOUPS
+Hygiène,Nettoyants corps,Liquide,Liquide,,1L,Pomme Sauvage,GELDOUPSRECH,,Recharge gel douche - 1L - Pomme Sauvage,16/3/2021,2021,TRUE,,GELDOUPSRECH
+Skincare,Facecare,Purifiant,Gel ,,140ml,,GELNETPUR140,3000000000847,Gel Nettoyant Purifiant 140ml,26/10/2025,,,,GELNETPUR140
+Suncare,Suncare,Après-soleil,Après-soleil,,200ml,Fraicheur d'Aloe,GELSOFAV200,,Après Soleil naturel Fraîcheur d'Aloe Vera 200 mL,1/2/2022,2022,TRUE,,GELSOFAV200
+Suncare,Suncare,Après-soleil,Après-soleil,,200ml,,GELSOL200,3000000000854,Gelée Après soleil 200ml,1/2/2020,2020,,,GELSOL200
+Suncare,Suncare,Après-soleil,Après-soleil,,200ml,,GELSOL200G,,Gelée Après soleil 200ml Goodiebox,13/05/2022,2022,TRUE,,GELSOL200G
+Suncare,Suncare,Après-soleil,Après-soleil,,50ml,,GELSOL50,,Gelée Après soleil 50mL,1/2/2020,2020,TRUE,,GELSOL50
+Skincare,Facecare,Nettoyants,Huile,,150ml,,HDEM150,3770018642413,Huile Démaquillante,1/1/2022,2022,,,HDEM150
+Skincare,Bodycare,Corps & Mains,Corps & Mains,,100ml,,HUILESE100,3000000000861,Huile Sèche - 100mL,15/4/2021,2021,,,HUILESE100
+Skincare,Bodycare,Corps & Mains,Corps & Mains,,50ml,,HUILESE50,3000000000878,Huile Sèche - 50mL,15/4/2021,2021,,,HUILESE50
+Suncare,Suncare,Daily Protect,Lait,,150ml,Monoï,SUSUPSLAU02,3000000000885,Lait Solaire Invisible Frais SPF 50+,2/3/2026,2026,,,LAISOL50-150
+Suncare,Suncare,Daily Protect,Lait,,150ml,Monoï,LAISOL50-150,3000000000892,Lait Solaire Invisible Frais SPF 50+,2/3/2026,2026,,,LAISOL50-150
+Skincare,Facecare,Eclat,Masque,Stick,50g,,MASSDECL50,3000000000908,Masque Stick Détox Eclat,25/01/2026,2026,,,MASSDECL50
+Skincare,Facecare,Purifiant,Masque,Stick,50g,,MASSPN50,3000000000915,Masque stick Peau Nette ,20/10/2024,2024,,,MASSPN50
+Suncare,Suncare,Protection solaire,Lait,,75ml,,MINSPRSOL30,3000000000922,SPF 30 75ml,1/2/2021,2021,,,MINSPRSOL30
+Suncare,Suncare,Protection solaire,Lait,,75ml,,MINSPRSOL50,3000000000939,SPF 50 75ml,1/2/2021,2021,,,MINSPRSOL50
+Skincare,Facecare,Nettoyants,Autres,,16g,,NETVIS16,3000000000946,Mini Nettoyant visage 16g,7/9/2020,2020,,,NETVIS16
+Skincare,Facecare,Nettoyants,Autres,,50g,,NETVIS50,3000000000953,Nettoyant visage 50gr,7/9/2020,2020,,,NETVIS50
+Skincare,Facecare,Nettoyants,Stick,Stick,50g,,NETVISST50,3000000000960,Soin Nettoyant Visage stick ,20/10/2024,2024,,,NETVISST50
+Coffret,Mixte,,,,,,ORNEMN21,,Coffret mini solide - Ornement (TBC),1/9/2021,2021,TRUE,,ORNEMN21
+Accessoires,Accessoires,,,,,,POCHEP,,Pochette éponge,13/10/2020,2020,TRUE,,POCHEP
+Accessoires,Accessoires,,,,,,PORTESAVON1,,Porte-savon aimanté X1,16/2/2022,2022,TRUE,,PORTESAVON1
+Accessoires,Accessoires,,,,,,PORTESAVON3,,Porte-savon aimanté X3,16/2/2022,2022,TRUE,,PORTESAVON3
+Skincare,Bodycare,Corps & Mains,Corps & Mains,,50ml,,RESPIRAE-HUILESE50,,Respirae - Huile Sèche - 50mL,23/10/2022,2022,TRUE,,RESPIRAE-HUILESE50
+Skincare,Facecare,Eclat,Sérum,Sérum,15ml,,SERB15,3000000000977,Sérum Shot d'éclat 15ml,01/09/2025,2025,,,SERB15
+Skincare,Facecare,Eclat,Sérum,Sérum,30ml,,SERB30,3000000000984,Sérum Shot D'éclat 30ml,01/09/2025,2025,,,SERB30
+Skincare,Facecare,Purifiant,Sérum,Sérum,15ml,,SERCP15,3000000000991,Sérum Purifiant 15ml,26/01/2025,2025,,,SERCP15
+Skincare,Facecare,Purifiant,Sérum,Sérum,30ml,,SERCP30,3000000001004,Sérum Purifiant 30ml,26/01/2025,2025,,,SERCPPO30
+Skincare,Facecare,Purifiant,Sérum,Sérum,30ml,,SERCPST30,3000000001011,Sérum Purifiant Pipette 30ml,,2025,,,SERCPPO30
+Skincare,Facecare,Purifiant,Sérum,Sérum,30ml,,SERCPPO30,3760368742482,Sérum Purifiant Pipette 30ml,,2025,,,SERCPPO30
+Skincare,Facecare,Eclat,Sérum,Sérum,15ml,,SERGLOW30-15,3000000001028,Sérum glow & protect 15 ml,25/01/2026,2026,,,SERGLOW30-30
+Skincare,Facecare,Eclat,Sérum,Sérum,30ml,,SERGLOW30-30,3000000001035,Sérum glow & protect 30 ml,25/01/2026,2026,,,SERGLOW30-30
+Echantillon,Echantillon,Echantillon,Echantillon,Echantillon,Echantillon,Echantillon,SERHINT_ECH3,,Echantillon Sérum Booster Hydratation 30mL,,,,TRUE,ECH
+Skincare,Facecare,Hydratation,Sérum,,15ml,,SERHINT15,3000000001042,Sérum Booster Hydratation 15mL,25/09/2024,2024,,,SERHINT15
+Skincare,Facecare,Hydratation,Sérum,,30ml,,SERHINT30,3000000001059,Sérum Booster Hydratation 30mL,25/09/2024,2024,,,SERHINTPO30
+Skincare,Facecare,Hydratation,Sérum,,30ml,,SERHINTPO30,3760368742499,Sérum Booster Hydratation 30mL,10/10/2025,2025,,,SERHINTPO30
+Echantillon,Echantillon,Echantillon,Echantillon,Echantillon,Echantillon,Echantillon,SFB_ECH5,,Echantillon Soin SOS spot,,,,TRUE,ECH
+Skincare,Facecare,Purifiant,Soin Ciblé,Crème,15ml,,SFB15,3760368740600,Soin SOS spot,26/01/2025,2025,,,SFB15
+Hygiène,Soins capillaires,Liquide,Liquide,,250ml,,SHLD250,3000000001066,Shampooing Liquide 250ml - Cheveux Secs,1/4/2022,2022,,,SHLD250
+Hygiène,Soins capillaires,Liquide,Liquide,,500ml,,SHLDRE,3000000001073,Recharge Shampoing 500ml - Cheveux Secs,1/4/2022,2022,,,SHLDRE
+Hygiène,Soins capillaires,Liquide,Liquide,,250ml,,SHLP250,3000000001080,Shampooing Liquide 250ml - Cheveux Gras,1/4/2022,2022,,,SHLP250
+Hygiène,Soins capillaires,Liquide,Liquide,,500ml,,SHLPRE,3000000001097,Recharge Shampoing 500ml - Cheveux Gras,1/4/2022,2022,,,SHLPRE
+Hygiène,Soins capillaires,Solide,Solide,,75g,Fleur de Coton,SHSFC75,3000000001103,Shampoing solide doux Fleur de Coton,22/07/2024,2024,,,SHSFC75
+Hygiène,Soins capillaires,Solide,Solide,,75g,Fraicheur Tropicale,SHSFT75,3000000001110,Shampoing solide Cheveux normaux - Parfum Fraîcheur tropicale,1/4/2022,2022,,,SHSFT75
+Hygiène,Soins capillaires,Solide,Solide,,75g,,SHSG75,3000000001127,Shampooing Solide - Cheveux Gras,1/4/2022,2022,,,SHSG75
+Hygiène,Soins capillaires,Solide,Solide,,20g,Lait d'amande,SHSLA20,3000000001134,Mini shampooing Solide - parfum lait d'amandes,20/11/2019,2019,,,SHSLA20
+Hygiène,Soins capillaires,Solide,Solide,,75g,Lait d'amande,SHSLA75,3000000001141,Shampooing Solide - Parfum Lait d'amandes,20/11/2019,2019,,,SHSLA75
+Hygiène,Soins capillaires,Solide,Solide,,20g,Peche du Verger,SHSPV20,3000000001158,Mini shampooing Solide - parfum Pêche du Verger,1/7/2022,2022,,,SHSPV20
+Hygiène,Soins capillaires,Solide,Solide,,75g,Peche du Verger,SHSPV75,3000000001165,Shampooing Solide - Parfum Pêche du Verger,1/3/2021,2021,,,SHSPV75
+Hygiène,Soins capillaires,Solide,Solide,,75g,,SHSS75,3000000001172,Shampooing Solide - Cheveux Secs,1/4/2022,2022,,,SHSS75
+Suncare,Suncare,Protection solaire,Unitaire,,100ml,,SPRSOL30-100,3000000001189,Spray Solaire SPF 30 (OLD),,,,,SPRSOL30-100
+Suncare,Suncare,Protection solaire,Lait,,120ml,,SPRSOL30-120,3000000001196,SPF 30 120ml,1/2/2021,2021,,,SPRSOL30-120
+Suncare,Suncare,Protection solaire,Lait,,120ml,,SPRSOL50-120,3000000001202,SPF 50 120ml,1/2/2021,2021,,,SPRSOL50-120
+Hygiène,Nettoyants corps,Solide,Savons,,100g,Figue,SSFF100,3000000001219,Savon Surgras Figue 100gr,7/10/2022,2022,,,SSFF100
+Hygiène,Nettoyants corps,Solide,Savons,,25g,Figue,SSFF25,3000000001226,Mini Savon Surgras Figue 25gr,14/9/2022,2022,,,SSFF25
+Hygiène,Nettoyants corps,Solide,Savons,,100g,Pomme Sauvage,SSPO100,3000000001233,Savon parfum poire sauvage,20/11/2019,2019,,,SSPO100
+Hygiène,Nettoyants corps,Solide,Savons,,25g,Pomme Sauvage,SSPO25,3000000001240,Mini Savon parfum poire sauvage,20/11/2019,2019,,,SSPO25
+Skincare,Facecare,Eclat,Stick,,,,STFRAIREG8,3000000001257,Stick fraicheur regard,25/01/2026,2026,,,STFRAIREG8
+Accessoires,Accessoires,,,,,,SWE-GRI-L,,Sweatshirt Respire gris L,4/12/2019,2019,TRUE,,SWE-GRI-L
+Accessoires,Accessoires,,,,,,SWE-GRI-M,,Sweatshirt Respire gris M,04/12/2019,2019,TRUE,,SWE-GRI-M
+Accessoires,Accessoires,,,,,,SWE-GRI-S,,Sweatshirt Respire gris S,4/12/2019,2019,TRUE,,SWE-GRI-S
+Accessoires,Accessoires,,,,,,SWE-GRI-XL,,Sweatshirt Respire gris XL,16/2/2020,2020,TRUE,,SWE-GRI-XL
+Accessoires,Accessoires,,,,,,SWE-GRI-XS,,Sweatshirt Respire gris XS,6/12/2019,2019,TRUE,,SWE-GRI-XS
+Accessoires,Accessoires,,,,,,TROUSFETEMER,,Trousse fête des mères,1/3/2021,2021,TRUE,,TROUSFETEMER
+Coffret,Mixte,,,,,,TROUSHYG,,Trousse Hygiène - Les indispensables salle de bain,1/10/2020,2020,TRUE,,TROUSHYG
+Coffret,Mixte,,,,,,TROUSRB21,,Coffret Noel 2 - Beauté visage,1/1/2022,2022,TRUE,,TROUSRB21
+Accessoires,Accessoires,,,,,,TROUSVOY2,,Trousse Summer 2021,1/3/2021,2021,TRUE,,TROUSVOY2
+Accessoires,Accessoires,,,,,,TROUSWEEK,,Trousse Voyage (exclu Sephora),1/4/2021,2021,TRUE,,TROUSWEEK
+Accessoires,Accessoires,,,,,,TSH-BLA-L,,Tshirt Respire blanc L,4/12/2019,2019,TRUE,,TSH-BLA-L
+Accessoires,Accessoires,,,,,,TSH-BLA-M,,Tshirt Respire blanc M,04/12/2019,2019,TRUE,,TSH-BLA-M
+Accessoires,Accessoires,,,,,,TSH-BLA-S,,Tshirt Respire blanc S,4/12/2019,2019,TRUE,,TSH-BLA-S
+Accessoires,Accessoires,,,,,,TSH-BLA-XL,,Tshirt Respire blanc XL,4/12/2019,2019,TRUE,,TSH-BLA-XL
+Accessoires,Accessoires,,,,,,TSH-BLA-XS,,Tshirt Respire blanc XS,4/12/2019,2019,TRUE,,TSH-BLA-XS
+Skincare,,,,,30 gélules,,VITNAT30,,Vitamines Anti-fatigue - 30 gélules,30/4/2020,2020,TRUE,,VITNAT30
+Skincare,,,,,30 gélules,,VITNATRE,,Vitamines Anti-fatigue - recharges,30/7/2020,2020,TRUE,,VITNATRE
+Skincare,Facecare,Nettoyants,Autres,,16g,,VNETVIS16,3000000001264,Vrac - Mini Nettoyant visage 16g,7/9/2020,2020,,,VNETVIS16
+Skincare,Facecare,Longévité,Soin Ciblé,Sérum,20ml,,SLSPF20,3000000001271,Soin lèvres repulpant SPF20,12/4/2026,2026,,,SLSPF20
+Skincare,Facecare,Longévité,Soin Ciblé,Sérum,20ml,,LIPCHARM2026,3000000001288,Soin lèvres repulpant SPF20 avec grigri,12/4/2026,2026,,,SLSPF20
+Skincare,Facecare,Nettoyants,Autres,,50g,,VNETVIS50,3000000001295,Vrac - Nettoyant visage 50gr,7/9/2020,2020,,,VNETVIS50
+Hygiène,Soins capillaires,Solide,Solide,,20g,Lait d'amande,VSHSLA20,3000000001301,Vrac - Mini Shampoing  parfum lait d'amandes,20/11/2019,2019,,,VSHSLA20
+Hygiène,Soins capillaires,Solide,Solide,,75g,Lait d'amande,VSHSLA75,3000000001318,Vrac - Shampoing Solide parfum lait d'amandes,20/11/2019,2019,,,VSHSLA75
+Hygiène,Nettoyants corps,Solide,Savons,,100g,Poire Sauvage,VSSPO100,3000000001325,Vrac - Savon parfum poire sauvage,20/11/2019,2019,,,VSSPO100
+Hygiène,Nettoyants corps,Solide,Savons,,25g,Poire Sauvage,VSSPO25,3000000001332,Vrac - Mini-Savon parfum poire sauvage,20/11/2019,2019,,,VSSPO25
+Skincare,Facecare,Hydratation,Sérum,,30ml,,SERHINTRECH30,3000000001349,Recharge sérum hydratant 30ml,,,,,SERHINTRECH30
+Skincare,Facecare,Purifiant,Sérum,,30ml,,SERCPRECH30,3000000001356,Recharge Sérum Purifiant 30ml,,,,,SERCPRECH30
+Skincare,Facecare,Hydratation,Crème,,50ml,,SKFAHYCRU02,3000000001363,Crème Riche Hydratant-Barrière,,2026,,,SKFAHYCRU02
+Skincare,Facecare,Hydratation,Fluide,,50ml,,SKFAHYFLU02,3000000001370,Fluide SPF Hydratant-Barrière,,2026,,,SKFAHYFLU02
+Skincare,Facecare,Hydratation,Crème,,50ml,,SKFAHYGEU02,3000000001387,Gel Crème Hydratant-Barrière,,2026,,,SKFAHYGEU02
+Hygiène,Déodorant,Stick,Recharge,,50ml,,HYDESPDMR02,3000000001394,Recharge déodorant stick plastique Douceur Monoï 50g V2,,2026,,,DSTPRECHDM
+Hygiène,Déodorant,Stick,Recharge,,50ml,,HYDESPECR02,3000000001400,Recharge déodorant stick plastique Embruns Cèdre. V2,,2026,,,DSTPRECHEC
+Hygiène,Déodorant,Stick,Recharge,,50ml,,HYDESPMER02,3000000001417,Recharge déodorant stick plastique Menthe Eucalyptus. V2,,2026,,,DSTPRECHME
+Skincare,Nettoyants corps,Nettoyants,Recharge,,500ml,,SKBOREHUR01,3000000001424,Recharge huile lavante relipidante 500mL,,2026,,,SKBOREHUR01
+Skincare,Nettoyants corps,Nettoyants,Huile,,500ml,,SKBOREHUU01,3000000001431,Huile lavante relipidante 500mL,,2026,,,SKBOREHUU01
+Skincare,Bodycare,Bodycare,Lait,,450ml,,SKBORELAU01,3000000001448,Lait corps fondant relipidant 450mL,,2026,,,SKBORELAU01
+Skincare,Facecare,Eclat,Sérum,Sérum,30ml,,SKFAECSEU02,3000000001455,Sérum Glow & Protect (bague striee),,2026,,,SERGLOW30-30
+Skincare,Facecare,Hydratation,Recharge,Sérum,30ml,,SKFAHYSER01,3000000001462,Recharge Sérum Hydratant 30mL,,2026,,,SKFAHYSER01
+Skincare,Facecare,Hydratation,Sérum,Sérum,30ml,,SKFAHYSEU02,3000000001479,Serum Booster Hydratation (bague striée),,2026,,,SERHINTPO30
+Skincare,Facecare,Longévité,Sérum,Sérum,30ml,,SKFALOSER01,3000000001486,Recharge Sérum lissant longévité,,2026,,,SKFALOSER01
+Skincare,Bodycare,RENEW,Stick,,25g,,STLISS25,3000000001493,Stick Ciblé Anti-Rugosités 25g,23/11/2026,2026,,,STLISS25
+Skincare,Bodycare,RENEW,Lait,Recharge,450ml,,LACORECH450,3000000001509,Recharge Lait Fluide Corps Relipidant 450mL,23/11/2026,2026,,,LACORECH450
+Skincare,Facecare,Longévité,,,6g,,STRID6,3000000001516,Stick combleur rides,,,,,STRID6
+Skincare,Facecare,Longévité,,,30ml,,HEGR30,3000000001523,Huile-en-gel régénérante,,,,,HEGR30
+Skincare,Facecare,Longévité,,,30ml,,SERLISS30,3000000001530,Sérum lissant longévité,,,,,SERLISS30
+skincare,Facecare,Longévité,,,30ml,,HEGRRECH30,3000000001547,Recharge Huile-en-gel régénérante,1/2/2027,,,,HEGRRECH30
