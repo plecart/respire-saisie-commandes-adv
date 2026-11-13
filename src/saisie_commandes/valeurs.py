@@ -1,18 +1,22 @@
-"""Lecture des valeurs imprimées : du texte d'un champ brut à une valeur typée.
+"""Valeurs à la française : lecture d'un champ brut en valeur typée, écriture d'un montant.
 
 Les formes reconnues couvrent celles des documents fournis : nombres à la française
 (« 1592,99 », « 9,750 », « 0,00 € », espaces de milliers admis), pourcentages (« 35% »,
 « 35,00 % »), dates jour, mois, année (« 23.01.2026 », « 20/01/26 »). Une cellule vide ou faite
 de tirets vaut une valeur absente. Chaque analyse rend `None` pour un texte qu'elle ne reconnaît
 pas ; à l'appelant d'en faire une valeur illisible.
+
+Un montant s'arrondit au centime, au demi supérieur (PRD #1, « Contrôles de calcul »), et
+s'écrit comme il s'imprime : « 1 592,99 ».
 """
 
 import re
 from datetime import date
-from decimal import Decimal
+from decimal import ROUND_HALF_UP, Decimal
 
 from saisie_commandes.champs import Illegible, Printed
 
+_CENT = Decimal("0.01")
 _NUMBER = re.compile("[0-9]+(?:,[0-9]+|[.](?:[0-9]{1,2}|[0-9]{4,}))?")
 _DATE = re.compile("(?P<day>[0-9]{1,2})[./-](?P<month>[0-9]{1,2})[./-](?P<year>[0-9]{4}|[0-9]{2})")
 
@@ -75,3 +79,13 @@ def parse_date(text: str) -> date | None:
         return date(year, month, day)
     except ValueError:
         return None
+
+
+def round_to_cent(amount: Decimal) -> Decimal:
+    """Montant arrondi au centime, au demi supérieur : 38,025 donne 38,03."""
+    return amount.quantize(_CENT, ROUND_HALF_UP)
+
+
+def format_amount(amount: Decimal) -> str:
+    """Montant au centime, à la française : espace de milliers, virgule décimale (« 1 592,99 »)."""
+    return f"{round_to_cent(amount):,}".replace(",", " ").replace(".", ",")
