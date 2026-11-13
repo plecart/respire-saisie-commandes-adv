@@ -34,8 +34,9 @@ MODEL_VARIABLE = "CLAUDE_MODEL"
 DEFAULT_MODEL = "claude-haiku-5-5"
 """Modèle utilisé quand `CLAUDE_MODEL` n'est pas renseigné.
 
-Provisoire : le défaut retenu sera le moins cher des modèles comparés sur les documents fournis
-qui les lit correctement (ADR 0001 § 4).
+Le moins cher qui lit correctement les documents fournis (ADR 0001 § 4) : comparé le 2026-11-13
+sur les cinq PDF de `exemples/`, Haiku 5.5 reproduit la table des résultats attendus du PRD #1 à
+trois exécutions sur trois (comparaison des modèles : description de la PR #11).
 """
 
 _MAX_RETRIES = 5
@@ -64,9 +65,12 @@ souvent le bon de commande d'une pharmacie, et tu en recopies les champs que dem
 - Recopie chaque valeur telle qu'imprimée, sans la convertir : virgule décimale, symbole « % »,
   date au format du document.
 - Ne lis ni le texte libre (commentaires, conditions, mentions) ni les annotations manuscrites.
-- La pharmacie est celle qui passe la commande, jamais le fournisseur. Le prix catalogue est le
-  prix unitaire avant remise ; les totaux sont hors taxes ; la date de livraison est celle qui
-  est souhaitée, pas celle de la commande ni de l'édition.
+- La pharmacie est celle qui passe la commande, jamais le fournisseur. Son nom est celui de
+  l'officine seul, sans les noms de ses titulaires ou pharmaciens ni son adresse. Le prix
+  catalogue est le prix unitaire avant remise ; les totaux sont hors taxes ; la date de
+  livraison est celle qui est souhaitée, pas celle de la commande ni de l'édition.
+- L'unité est celle de la quantité (« UN », « COL6 ») ; null si le document n'en imprime pas.
+  Ne la confonds pas avec un prix.
 - Une entrée par ligne de commande, dans l'ordre du document. Une remise par colonne de remise
   renseignée sur la ligne ; aucune si ces colonnes sont vides.
 - Indique la nature du document : commande, facture ou autre."""
