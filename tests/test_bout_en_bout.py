@@ -41,10 +41,14 @@ COMMANDE_2 = {
 """Commande attendue de Commande_2 : sans remise imprimée, une ligne à 0,00 €."""
 
 
+def extraction(name: str) -> str:
+    """JSON de l'extraction attendue d'un document, désigné par son nom sans extension."""
+    return (EXTRACTIONS / f"{name}.json").read_text(encoding="utf-8")
+
+
 def extract(document: Path) -> RawFields:
     """Faux extracteur : l'extraction attendue du document, retrouvée par son nom."""
-    text = (EXTRACTIONS / f"{document.stem}.json").read_text(encoding="utf-8")
-    return RawFields.model_validate_json(text)
+    return RawFields.model_validate_json(extraction(document.stem))
 
 
 @pytest.fixture
@@ -129,9 +133,7 @@ def test_une_commande_produite_est_au_format_exact_de_l_enonce(lot):
     assert json.dumps(written) == json.dumps(COMMANDE_2)
 
 
-@pytest.mark.parametrize(
-    "document", ["Commande_1", "Commande_2", "Commande_3", "Document_4", "Commande_5"]
-)
+@pytest.mark.parametrize("document", [row[0] for row in TABLE[1:]])
 def test_une_extraction_attendue_respecte_le_schema_des_champs_bruts(document):
-    text = (EXTRACTIONS / f"{document}.json").read_text(encoding="utf-8")
+    text = extraction(document)
     assert RawFields.model_validate_json(text).model_dump(mode="json") == json.loads(text)
