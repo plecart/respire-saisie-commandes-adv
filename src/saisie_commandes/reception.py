@@ -11,8 +11,8 @@ jamais lu. Le mail dont la seule pièce jointe est un PDF se traite comme ce PDF
 `save_pdf_attachment` écrit dans un dossier ; tout autre mail est rejeté (`RejectedMail`).
 
 Tout ce que porte un mail est non fiable : une pièce jointe faite de parties (message transféré,
-`multipart/*`) n'est jamais un PDF, et le nom d'une pièce jointe ne devient un nom de fichier que
-s'il a une forme sûre.
+`multipart/*`) n'est jamais un PDF, le nom d'une pièce jointe ne devient un nom de fichier que
+s'il a une forme sûre, et un motif de rejet n'en cite aucun caractère non imprimable.
 """
 
 import re
@@ -34,12 +34,15 @@ _SAFE_FILE_NAME = re.compile(r"[\w-][\w .-]{0,61}\.pdf", re.IGNORECASE)
 """Forme d'un nom de pièce jointe gardé comme nom de fichier, par liste blanche.
 
 Lettres et chiffres de toute écriture, `_`, `-`, espace et point, ni point ni espace en tête,
-terminé par `.pdf`. Au plus 66 caractères, de 4 octets UTF-8 au pire : 252 octets, sous la limite
-de 255 octets d'un nom de fichier sous Linux.
+terminé par `.pdf`. Au plus 62 caractères avant `.pdf`, de 4 octets UTF-8 au pire : 252 octets,
+sous la limite de 255 octets d'un nom de fichier sous Linux.
 """
 
 _UNNAMED_PDF = "piece_jointe.pdf"
 """Nom du PDF écrit quand le nom de sa pièce jointe n'a pas la forme `_SAFE_FILE_NAME`."""
+
+_UNPRINTABLE = chr(0xFFFD)
+"""Caractère de remplacement Unicode, mis dans un motif à la place d'un caractère non imprimable."""
 
 
 class RejectedMail(Exception):
@@ -75,8 +78,8 @@ def save_pdf_attachment(mail: Path, directory: Path) -> Path:
 
     Le nom de la pièce jointe vient d'un fichier non fiable : le PDF n'en garde que le dernier
     composant, coupé sur la barre oblique comme sur l'antislash, et seulement s'il a une forme
-    sûre ; sinon il se nomme `piece_jointe.pdf`. Rien ne s'écrit hors de `directory`. Seul le nom
-    de fichier est filtré : un motif de rejet cite le nom brut de la pièce jointe.
+    sûre ; sinon il se nomme `piece_jointe.pdf`. Rien ne s'écrit hors de `directory`. Un motif de
+    rejet cite le nom entier de la pièce jointe, ses seuls caractères non imprimables remplacés.
 
     Raises:
         RejectedMail: le mail n'a aucune pièce jointe, en a plusieurs, PDF ou non, ou sa seule
@@ -106,12 +109,17 @@ def _pdf_attachment(message: EmailMessage) -> EmailMessage:
 
 
 def _display_name(attachment: EmailMessage) -> str:
-    """Nom d'une pièce jointe dans un motif : son nom brut, à défaut son type MIME."""
-    return attachment.get_filename() or attachment.get_content_type()
+    """Nom d'une pièce jointe dans un motif : son nom, à défaut son type MIME.
+
+    L'un et l'autre peuvent porter une fin de ligne, même encodée : chaque caractère non
+    imprimable y devient `_UNPRINTABLE`, pour qu'un motif tienne sur sa ligne du rapport.
+    """
+    name = attachment.get_filename() or attachment.get_content_type()
+    return "".join(char if char.isprintable() else _UNPRINTABLE for char in name)
 
 
 def _is_pdf(attachment: EmailMessage) -> bool:
-    """Vrai si la pièce jointe est un PDF : des octets, de type MIME PDF ou nommés en `.pdf`.
+    """Vrai si la pièce jointe est un PDF : faite d'octets, et de type MIME PDF ou nommée en `.pdf`.
 
     Le parseur lit une pièce jointe `message/*` ou `multipart/*` comme des parties, sans octets
     (`get_payload(decode=True)` rend `None`) : elle n'est jamais un PDF, quel que soit son nom.

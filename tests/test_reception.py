@@ -23,8 +23,11 @@ LONGEST_NAME = chr(0x1D400) * 62 + ".pdf"
 PDF_DIRECTORY = Path("temporaire", "mail")
 """Dossier du PDF écrit, deux niveaux sous le mail : un nom en `../../` en sortirait vers lui."""
 
+UNPRINTABLE = chr(0xFFFD)
+"""Caractère qui remplace, dans un motif de rejet, un caractère non imprimable venu du mail."""
 
-def save(message: EmailMessage, root: Path) -> Path:
+
+def save(message: EmailMessage | bytes, root: Path) -> Path:
     """Écrit le mail dans `root`, puis son PDF joint sous `root / PDF_DIRECTORY` ; rend le PDF."""
     directory = root / PDF_DIRECTORY
     directory.mkdir(parents=True)
@@ -33,7 +36,7 @@ def save(message: EmailMessage, root: Path) -> Path:
     return save_pdf_attachment(path, directory)
 
 
-def decision(message: EmailMessage, root: Path) -> str | tuple[str, bytes]:
+def decision(message: EmailMessage | bytes, root: Path) -> str | tuple[str, bytes]:
     """Ce que la réception décide d'un mail : son motif de rejet, ou le nom et les octets du PDF."""
     try:
         written = save(message, root)
@@ -47,6 +50,20 @@ def forwarded() -> EmailMessage:
     message = mail()
     message.add_attachment(mail(body="Commande transférée.\n"))
     return message
+
+
+def raw_mail(content_type: str, disposition: str) -> bytes:
+    """Mail brut, sans corps, dont la seule pièce jointe porte ces deux en-têtes tels quels."""
+    return f"""MIME-Version: 1.0
+Content-Type: multipart/mixed; boundary=B
+
+--B
+Content-Type: {content_type}
+Content-Disposition: {disposition}
+
+Contenu.
+--B--
+""".encode()
 
 
 def test_la_reception_rend_les_pdf_et_les_mails_du_dossier_dans_l_ordre_de_leurs_noms(tmp_path):
@@ -129,6 +146,49 @@ def test_une_piece_jointe_faite_de_parties_n_est_pas_un_pdf_meme_nommee_en_pdf(t
     message.make_mixed()
     message.attach(part)
     assert decision(message, tmp_path) == "pièce jointe « x.pdf » qui n'est pas un PDF"
+
+
+@pytest.mark.parametrize(
+    ("content_type", "disposition", "shown"),
+    [
+        pytest.param(
+            DOCX_TYPE,
+            "attachment; filename*=utf-8''a%0A%23%23%20b.docx",
+            f"a{UNPRINTABLE}## b.docx",
+            id="nom-fin-de-ligne",
+        ),
+        pytest.param(
+            DOCX_TYPE,
+            "attachment; filename*=utf-8''a%0Db.docx",
+            f"a{UNPRINTABLE}b.docx",
+            id="nom-retour-chariot",
+        ),
+        pytest.param(
+            DOCX_TYPE,
+            "attachment; filename*=utf-8''a%E2%80%A8b.docx",
+            f"a{UNPRINTABLE}b.docx",
+            id="nom-separateur-de-ligne",
+        ),
+        pytest.param(
+            DOCX_TYPE,
+            "attachment; filename*=utf-8''a%01b.docx",
+            f"a{UNPRINTABLE}b.docx",
+            id="nom-caractere-de-controle",
+        ),
+        pytest.param(
+            "application/=?utf-8?q?a=0Ab?=",
+            "attachment",
+            f"application/a{UNPRINTABLE}b",
+            id="type-fin-de-ligne",
+        ),
+    ],
+)
+def test_un_motif_de_rejet_remplace_chaque_caractere_non_imprimable_venu_du_mail(
+    tmp_path, content_type, disposition, shown
+):
+    """Nom ou, à défaut, type MIME : un motif tient sur sa ligne du rapport."""
+    message = raw_mail(content_type, disposition)
+    assert decision(message, tmp_path) == f"pièce jointe « {shown} » qui n'est pas un PDF"
 
 
 def test_deux_mails_au_meme_corps_mais_aux_pieces_jointes_differentes_sont_decides_autrement(
