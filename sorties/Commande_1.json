@@ -1,0 +1,85 @@
+{
+  "partner_id": 10102,
+  "client_order_ref": "0",
+  "commitment_date": "2026-01-23",
+  "order_line": [
+    {
+      "product_ref": "DROSFC50",
+      "product_uom_qty": 9,
+      "price_unit": 9.25,
+      "discount": 35.0
+    },
+    {
+      "product_ref": "DSTCFC50",
+      "product_uom_qty": 12,
+      "price_unit": 10.31,
+      "discount": 35.0
+    },
+    {
+      "product_ref": "DSTPRECHFC",
+      "product_uom_qty": 6,
+      "price_unit": 9.75,
+      "discount": 35.0
+    },
+    {
+      "product_ref": "DSTPFC50",
+      "product_uom_qty": 12,
+      "price_unit": 10.75,
+      "discount": 35.0
+    },
+    {
+      "product_ref": "DSTPRECHDM",
+      "product_uom_qty": 6,
+      "price_unit": 0.0,
+      "discount": 0.0
+    },
+    {
+      "product_ref": "DSTPRECHRP",
+      "product_uom_qty": 6,
+      "price_unit": 0.0,
+      "discount": 0.0
+    },
+    {
+      "product_ref": "DSTPDM50",
+      "product_uom_qty": 12,
+      "price_unit": 0.0,
+      "discount": 0.0
+    },
+    {
+      "product_ref": "DSTPRECHME",
+      "product_uom_qty": 6,
+      "price_unit": 0.0,
+      "discount": 0.0
+    },
+    {
+      "product_ref": "DSTPRECHEC",
+      "product_uom_qty": 6,
+      "price_unit": 0.0,
+      "discount": 0.0
+    },
+    {
+      "product_ref": "DSTPME50",
+      "product_uom_qty": 12,
+      "price_unit": 10.75,
+      "discount": 35.0
+    },
+    {
+      "product_ref": "DSTPEC50",
+      "product_uom_qty": 12,
+      "price_unit": 0.0,
+      "discount": 0.0
+    },
+    {
+      "product_ref": "DSTPRP50",
+      "product_uom_qty": 12,
+      "price_unit": 10.75,
+      "discount": 35.0
+    },
+    {
+      "product_ref": "DSTPVT50",
+      "product_uom_qty": 12,
+      "price_unit": 0.0,
+      "discount": 0.0
+    }
+  ]
+}
