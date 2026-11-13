@@ -5,6 +5,7 @@ erreurs les exceptions du SDK, construites ici.
 """
 
 import base64
+from collections import Counter
 from pathlib import Path
 from types import SimpleNamespace
 
@@ -96,14 +97,14 @@ def portrait(image: bytes) -> bool:
     return pixmap.width < pixmap.height
 
 
-def descriptions(schema: object) -> set[str]:
-    """Les descriptions d'un JSON Schema, à toute profondeur."""
+def descriptions(schema: object) -> Counter[str]:
+    """Les descriptions d'un JSON Schema, à toute profondeur, comptées à chaque occurrence."""
     if isinstance(schema, list):
-        return set().union(*map(descriptions, schema))
+        return sum(map(descriptions, schema), Counter())
     if not isinstance(schema, dict):
-        return set()
-    found = {schema["description"]} if isinstance(schema.get("description"), str) else set()
-    return found.union(*map(descriptions, schema.values()))
+        return Counter()
+    found = Counter([schema["description"]] if isinstance(schema.get("description"), str) else [])
+    return sum(map(descriptions, schema.values()), found)
 
 
 def unwrapped(schema: object) -> object:
@@ -133,8 +134,9 @@ def test_la_requete_nomme_le_modele_et_contraint_la_sortie_au_schema_des_champs_
 
 
 def test_le_schema_envoye_porte_chaque_description_des_champs_bruts():
+    """Chaque occurrence compte : deux champs de même description ne se confondent pas."""
     sent = descriptions(request_for()["output_config"])
-    assert descriptions(RawFields.model_json_schema()) - sent == set()
+    assert descriptions(RawFields.model_json_schema()) - sent == Counter()
 
 
 def test_la_requete_porte_les_instructions_et_plafonne_la_reponse():
