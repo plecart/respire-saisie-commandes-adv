@@ -16,24 +16,25 @@ l'ADR 0001 § 6 et le PRD #1, §§ « Règles de rapprochement », « Contrôles
 from collections.abc import Callable
 from dataclasses import replace
 from datetime import date
-from decimal import ROUND_HALF_UP, Decimal
+from decimal import Decimal
 
 from saisie_commandes.champs import DocumentType, Illegible, Printed, RawFields, RawLine
 from saisie_commandes.referentiels import ClientStatus, ReferenceData, Row, is_valid_ean13
 from saisie_commandes.resultat import Anomaly, DocumentResult, Order, OrderLine, Status, Summary
 from saisie_commandes.valeurs import (
+    format_amount,
     parse_date,
     parse_number,
     parse_percent,
     parse_quantity,
     read,
     readable,
+    round_to_cent,
 )
 
 type _Report = Callable[[str], None]
 """Consigne une anomalie, décrite par son message."""
 
-_CENT = Decimal("0.01")
 _TOLERANCE = Decimal("0.01")
 """Écart accepté entre un total imprimé et son recalcul (PRD #1, « Contrôles de calcul »)."""
 
@@ -164,11 +165,11 @@ def _check_line(
 
     if quantity is None or not in_units or price is None or discount is None:
         return None, total
-    expected = (quantity * price * (1 - discount / 100)).quantize(_CENT, ROUND_HALF_UP)
+    expected = round_to_cent(quantity * price * (1 - discount / 100))
     if total is not None and not _agrees(total, expected):
         block(
             f"total de ligne incohérent : « {line.line_total} » imprimé, "
-            f"{_format_amount(expected)} calculé"
+            f"{format_amount(expected)} calculé"
         )
     if article is None:
         return None, total
@@ -235,7 +236,7 @@ def _document_total(
     if not _agrees(total, lines_sum):
         block(
             f"total HT incohérent : « {printed} » imprimé, "
-            f"{_format_amount(lines_sum)} pour la somme des lignes"
+            f"{format_amount(lines_sum)} pour la somme des lignes"
         )
     return total
 
@@ -270,8 +271,3 @@ def _parse[T](
 def _agrees(printed: Decimal, computed: Decimal) -> bool:
     """Vrai si un total imprimé et son recalcul s'écartent d'un centime au plus."""
     return abs(printed - computed) <= _TOLERANCE
-
-
-def _format_amount(amount: Decimal) -> str:
-    """Montant au centime, à la française : « 83,85 »."""
-    return f"{amount:.2f}".replace(".", ",")
