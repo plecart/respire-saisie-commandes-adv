@@ -1,0 +1,13 @@
+# `docker compose up` : traite `exemples/` et écrit les sorties dans `sorties/`, sur l'hôte.
+services:
+  saisie-commandes:
+    build: .
+    env_file:
+      # Sans `.env`, le programme dit lui-même quoi renseigner, plutôt qu'une erreur de Compose.
+      - path: .env
+        required: false
+    volumes:
+      - ./exemples:/app/exemples:ro
+      # ponytail: le conteneur tourne en root ; sur un hôte Linux, les sorties lui appartiennent.
+      # Régler `user:` sur l'UID de l'hôte si cela gêne.
+      - ./sorties:/app/sorties
