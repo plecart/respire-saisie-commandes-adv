@@ -102,8 +102,9 @@ jobs:
       # passée : elle l'imposerait par `UV_PYTHON`, au-dessus de ce fichier.
       - uses: astral-sh/setup-uv@68559e99cc807c1eb7e9238fd43a15bba460eec2 # v10.3.3
 
+      # `--locked` : un `pyproject.toml` modifié sans `uv lock` fait échouer l'installation.
       - name: Install
-        run: uv sync
+        run: uv sync --locked
 
       - name: Lint
         run: uv run ruff check .
