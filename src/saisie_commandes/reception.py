@@ -16,6 +16,7 @@ s'il a une forme sûre, et un motif de rejet n'en cite aucun caractère non impr
 """
 
 import re
+import unicodedata
 from collections import Counter
 from collections.abc import Iterable
 from email import policy
@@ -112,10 +113,18 @@ def _display_name(attachment: EmailMessage) -> str:
     """Nom d'une pièce jointe dans un motif : son nom, à défaut son type MIME.
 
     L'un et l'autre peuvent porter une fin de ligne, même encodée : chaque caractère non
-    imprimable y devient `_UNPRINTABLE`, pour qu'un motif tienne sur sa ligne du rapport.
+    imprimable y devient `_UNPRINTABLE`, pour qu'un motif tienne sur sa ligne du rapport ; un
+    espace autre que l'espace ASCII (insécable, fine insécable) y devient un espace.
     """
     name = attachment.get_filename() or attachment.get_content_type()
-    return "".join(char if char.isprintable() else _UNPRINTABLE for char in name)
+    return "".join(map(_printable, name))
+
+
+def _printable(char: str) -> str:
+    """Le caractère s'il est imprimable ; sinon un espace pour un espace, `_UNPRINTABLE` sinon."""
+    if char.isprintable():
+        return char
+    return " " if unicodedata.category(char) == "Zs" else _UNPRINTABLE
 
 
 def _is_pdf(attachment: EmailMessage) -> bool:

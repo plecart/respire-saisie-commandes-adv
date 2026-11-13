@@ -52,18 +52,11 @@ def forwarded() -> EmailMessage:
     return message
 
 
-def raw_mail(content_type: str, disposition: str) -> bytes:
-    """Mail brut, sans corps, dont la seule pièce jointe porte ces deux en-têtes tels quels."""
-    return f"""MIME-Version: 1.0
-Content-Type: multipart/mixed; boundary=B
-
---B
-Content-Type: {content_type}
-Content-Disposition: {disposition}
-
-Contenu.
---B--
-""".encode()
+def raw_mail(content_type: str, disposition: str, count: int = 1) -> bytes:
+    """Mail brut, sans corps, portant `count` pièces jointes aux deux en-têtes tels quels."""
+    part = f"--B\nContent-Type: {content_type}\nContent-Disposition: {disposition}\n\nContenu.\n"
+    headers = "MIME-Version: 1.0\nContent-Type: multipart/mixed; boundary=B\n"
+    return f"{headers}\n{part * count}--B--\n".encode()
 
 
 def test_la_reception_rend_les_pdf_et_les_mails_du_dossier_dans_l_ordre_de_leurs_noms(tmp_path):
@@ -181,14 +174,43 @@ def test_une_piece_jointe_faite_de_parties_n_est_pas_un_pdf_meme_nommee_en_pdf(t
             f"application/a{UNPRINTABLE}b",
             id="type-fin-de-ligne",
         ),
+        pytest.param(
+            DOCX_TYPE,
+            "attachment; filename*=utf-8''n%C2%B0%C2%A03.docx",
+            "n° 3.docx",
+            id="nom-espace-insecable",
+        ),
+        pytest.param(
+            DOCX_TYPE,
+            "attachment; filename*=utf-8''n%C2%B0%E2%80%AF3.docx",
+            "n° 3.docx",
+            id="nom-espace-fine-insecable",
+        ),
+    ],
+)
+@pytest.mark.parametrize(
+    ("count", "reason"),
+    [
+        pytest.param(1, "pièce jointe « {0} » qui n'est pas un PDF", id="une-piece-jointe"),
+        pytest.param(
+            2,
+            "mail avec 2 pièces jointes ({0}, {0}), un seul PDF attendu",
+            id="deux-pieces-jointes",
+        ),
     ],
 )
 def test_un_motif_de_rejet_remplace_chaque_caractere_non_imprimable_venu_du_mail(
-    tmp_path, content_type, disposition, shown
+    tmp_path, content_type, disposition, shown, count, reason
 ):
-    """Nom ou, à défaut, type MIME : un motif tient sur sa ligne du rapport."""
-    message = raw_mail(content_type, disposition)
-    assert decision(message, tmp_path) == f"pièce jointe « {shown} » qui n'est pas un PDF"
+    """Nom ou, à défaut, type MIME : un motif tient sur sa ligne du rapport.
+
+    Chemins du texte d'un mail vers une sortie : nom → motif, type MIME → motif (épinglés ici,
+    dans les deux motifs qui citent une pièce jointe), nom → nom de fichier (liste blanche,
+    `test_un_pdf_joint_garde_son_nom_s_il_a_une_forme_sure_sinon_se_nomme_piece_jointe`) ;
+    3 recensés, 2 fuyaient avant la neutralisation. Un espace insécable reste un espace.
+    """
+    message = raw_mail(content_type, disposition, count)
+    assert decision(message, tmp_path) == reason.format(shown)
 
 
 def test_deux_mails_au_meme_corps_mais_aux_pieces_jointes_differentes_sont_decides_autrement(
