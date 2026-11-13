@@ -18,6 +18,7 @@ reste hors de la mesure de couverture.
 import base64
 from collections.abc import Callable, Mapping
 from pathlib import Path
+from typing import Any
 
 import anthropic
 import pydantic
@@ -51,10 +52,34 @@ _DPI = 150
 _MAX_TOKENS = 16_000
 """Plafond de la réponse ; les champs bruts attendus de Commande_3, 18 lignes, font 3 Ko de JSON."""
 
+
+def _wrap_refs(schema: Any) -> Any:
+    """`schema`, chaque `$ref` accompagné d'autres clés enveloppé dans un `anyOf` à une branche.
+
+    `transform_schema` ne garde d'un nœud `$ref` que la référence (SDK 2.8.0,
+    `lib/_parse/_transform.py`) : la description d'un champ typé par un modèle ou un alias s'y
+    perdrait. Dans l'enveloppe, elle reste au champ ; un `allOf` ne conviendrait pas, l'API
+    refusant un `allOf` qui porte un `$ref` (documentation « Structured outputs », « JSON Schema
+    limitations »).
+    """
+    if isinstance(schema, list):
+        return [_wrap_refs(item) for item in schema]
+    if not isinstance(schema, dict):
+        return schema
+    schema = {key: _wrap_refs(value) for key, value in schema.items()}
+    if "$ref" in schema and len(schema) > 1:
+        ref = schema.pop("$ref")
+        return {"anyOf": [{"$ref": ref}], **schema}
+    return schema
+
+
 _OUTPUT_CONFIG = {
-    "format": {"type": "json_schema", "schema": anthropic.transform_schema(RawFields)}
+    "format": {
+        "type": "json_schema",
+        "schema": anthropic.transform_schema(_wrap_refs(RawFields.model_json_schema())),
+    }
 }
-"""Sortie contrainte par le schéma des champs bruts, tel que le SDK l'adapte pour l'API."""
+"""Sortie contrainte par le schéma des champs bruts, adapté par le SDK, descriptions comprises."""
 
 _INSTRUCTIONS = """Tu lis un document reçu par l'administration des ventes d'un fournisseur, le plus
 souvent le bon de commande d'une pharmacie, et tu en recopies les champs que demande le schéma.
@@ -151,7 +176,7 @@ def _render_pages(document: Path) -> list[bytes]:
     """Chaque page du PDF, rendue en PNG, dans l'ordre ; `ExtractionError` s'il est illisible."""
     try:
         pdf = pymupdf.open(document)
-    except (pymupdf.FileDataError, pymupdf.FileNotFoundError) as error:
+    except (pymupdf.FileDataError, pymupdf.FileNotFoundError, OSError) as error:
         raise ExtractionError(f"PDF illisible : {error}") from error
     with pdf:
         if pdf.needs_pass:

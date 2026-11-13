@@ -15,6 +15,7 @@ import pytest
 
 from saisie_commandes.champs import RawFields
 from saisie_commandes.extraction import (
+    _INSTRUCTIONS,
     ExtractionError,
     MissingApiKey,
     claude_extractor,
@@ -81,10 +82,39 @@ def read_with(
     return raised.value, client
 
 
+def request_for(document: Path = COMMANDE_3) -> dict:
+    """La requête, unique, qu'envoie la lecture réussie de `document`."""
+    client = FakeClient(reply(ANSWER))
+    claude_extractor(client, MODEL)(document)
+    (request,) = client.requests
+    return request
+
+
 def portrait(image: bytes) -> bool:
     """Vrai si l'image est plus haute que large."""
     pixmap = pymupdf.Pixmap(image)
     return pixmap.width < pixmap.height
+
+
+def descriptions(schema: object) -> set[str]:
+    """Les descriptions d'un JSON Schema, à toute profondeur."""
+    if isinstance(schema, list):
+        return set().union(*map(descriptions, schema))
+    if not isinstance(schema, dict):
+        return set()
+    found = {schema["description"]} if isinstance(schema.get("description"), str) else set()
+    return found.union(*map(descriptions, schema.values()))
+
+
+def unwrapped(schema: object) -> object:
+    """`schema`, chaque `anyOf` à une seule branche remplacé par cette branche."""
+    if isinstance(schema, list):
+        return [unwrapped(item) for item in schema]
+    if not isinstance(schema, dict):
+        return schema
+    if len(schema.get("anyOf", ())) == 1:
+        return unwrapped(schema["anyOf"][0])
+    return {key: unwrapped(value) for key, value in schema.items()}
 
 
 def test_un_document_est_lu_en_un_seul_appel_qui_rend_ses_champs_bruts():
@@ -94,13 +124,22 @@ def test_un_document_est_lu_en_un_seul_appel_qui_rend_ses_champs_bruts():
 
 
 def test_la_requete_nomme_le_modele_et_contraint_la_sortie_au_schema_des_champs_bruts():
-    client = FakeClient(reply(ANSWER))
-    claude_extractor(client, MODEL)(COMMANDE_3)
-    (request,) = client.requests
-    assert (request["model"], request["output_config"]) == (
+    """Le schéma envoyé est celui du SDK, chaque référence décrite enveloppée dans un `anyOf`."""
+    request = request_for()
+    assert (request["model"], unwrapped(request["output_config"])) == (
         MODEL,
         {"format": {"type": "json_schema", "schema": anthropic.transform_schema(RawFields)}},
     )
+
+
+def test_le_schema_envoye_porte_chaque_description_des_champs_bruts():
+    sent = descriptions(request_for()["output_config"])
+    assert descriptions(RawFields.model_json_schema()) - sent == set()
+
+
+def test_la_requete_porte_les_instructions_et_plafonne_la_reponse():
+    request = request_for()
+    assert (request["system"], request["max_tokens"]) == (_INSTRUCTIONS, 16_000)
 
 
 def test_les_pages_partent_en_png_dans_l_ordre_du_document_puis_la_consigne(tmp_path):
@@ -109,10 +148,7 @@ def test_les_pages_partent_en_png_dans_l_ordre_du_document_puis_la_consigne(tmp_
         pdf.new_page(width=200, height=300)
         pdf.new_page(width=300, height=200)
         pdf.save(document)
-    client = FakeClient(reply(ANSWER))
-    claude_extractor(client, MODEL)(document)
-    (request,) = client.requests
-    (message,) = request["messages"]
+    (message,) = request_for(document)["messages"]
     *images, prompt = message["content"]
     pages = [
         (image["source"]["media_type"], portrait(base64.b64decode(image["source"]["data"])))
@@ -218,6 +254,22 @@ def test_un_pdf_illisible_bloque_le_document_sans_appeler_claude(tmp_path, write
     write(document)
     extraction_error, client = read_with(reply(ANSWER), document)
     assert (str(extraction_error).startswith(reason), client.requests) == (True, [])
+
+
+def test_une_erreur_du_systeme_de_fichiers_a_l_ouverture_bloque_le_document(monkeypatch):
+    """Ouverture refusée par le système de fichiers, simulée : pymupdf ne la lève qu'en course."""
+    error = PermissionError(13, "Permission denied")
+
+    def refuse(document: Path) -> None:
+        raise error
+
+    monkeypatch.setattr(pymupdf, "open", refuse)
+    extraction_error, client = read_with(reply(ANSWER))
+    assert (str(extraction_error), extraction_error.__cause__, client.requests) == (
+        "PDF illisible : [Errno 13] Permission denied",
+        error,
+        [],
+    )
 
 
 @pytest.mark.parametrize("environ", [{}, {"ANTHROPIC_API_KEY": ""}], ids=["absente", "vide"])
