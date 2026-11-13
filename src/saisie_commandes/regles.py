@@ -7,7 +7,9 @@ l'ADR 0001 § 6 et le PRD #1, §§ « Règles de rapprochement », « Contrôles
 - un document qui n'est pas un bon de commande s'arrête à cette seule anomalie ;
 - sinon tous les contrôles s'exécutent, et le résultat garde toutes les anomalies relevées ;
 - chaque ligne est recalculée dès que sa quantité, son prix et sa remise sont établis, même
-  bloquée par ailleurs ; une ligne à plusieurs remises ne l'est pas, la formule n'en prend qu'une ;
+  bloquée par ailleurs ; la formule prend une seule remise et une quantité en unités, si bien
+  qu'une ligne à plusieurs remises, ou dont la quantité est en colis ou d'unité illisible, ne
+  l'est pas ;
 - une valeur illisible, ou que la lecture ne reconnaît pas (`valeurs`), n'est jamais devinée.
 """
 
@@ -156,11 +158,11 @@ def _check_line(
     quantity = _require(line.quantity, parse_quantity, "quantité", "absente", block)
     price = _require(line.catalog_price, parse_number, "prix catalogue", "absent", block)
     total = _require(line.line_total, parse_number, "total de ligne", "absent", block)
-    _check_unit(line.unit, block)
+    in_units = _quantity_in_units(line.unit, block)
     _check_free_units(line.free_units, block)
     discount = _discount(line.discounts, block)
 
-    if quantity is None or price is None or discount is None:
+    if quantity is None or not in_units or price is None or discount is None:
         return None, total
     expected = (quantity * price * (1 - discount / 100)).quantize(_CENT, ROUND_HALF_UP)
     if total is not None and not _agrees(total, expected):
@@ -188,13 +190,16 @@ def _article(ean: str | Illegible | None, references: ReferenceData, block: _Rep
     return None
 
 
-def _check_unit(printed: Printed, block: _Report) -> None:
-    """Bloque une quantité en colis, ou dont l'unité est illisible."""
+def _quantity_in_units(printed: Printed, block: _Report) -> bool:
+    """Vrai si la quantité est en unités ; bloque une quantité en colis, ou d'unité illisible."""
     unit = read(printed)
     if isinstance(unit, Illegible):
         block("unité illisible")
-    elif unit is not None and unit.upper().startswith(_PACK_UNITS):
+        return False
+    if unit is not None and unit.upper().startswith(_PACK_UNITS):
         block(f"quantité en colis : « {unit} »")
+        return False
+    return True
 
 
 def _check_free_units(printed: Printed, block: _Report) -> None:
