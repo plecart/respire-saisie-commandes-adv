@@ -1,17 +1,166 @@
-"""Tests de la réception : les documents à traiter d'un dossier d'entrée."""
+"""Tests de la réception : les documents d'un dossier d'entrée, le PDF joint à un mail."""
 
+from email.message import EmailMessage
 from pathlib import Path
 
-from saisie_commandes.reception import receive, shared_names
+import pytest
+from mails import PDF, PDF_TYPE, mail
+
+from saisie_commandes.reception import RejectedMail, receive, save_pdf_attachment, shared_names
+
+DOCX_TYPE = "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+
+ORDER_BODY = (
+    "Commande n° 208532 - GRANDE PHARMACIE DU LAC\n3760368741584 : 18 x 6,40, remise 35 %\n"
+)
+"""Corps qui recopie une commande en texte : il n'est jamais lu."""
+
+PDF_DIRECTORY = Path("temporaire", "mail")
+"""Dossier du PDF écrit, deux niveaux sous le mail : un nom en `../../` en sortirait vers lui."""
 
 
-def test_la_reception_rend_les_pdf_du_dossier_dans_l_ordre_de_leurs_noms(tmp_path):
+def save(message: EmailMessage, root: Path) -> Path:
+    """Écrit le mail dans `root`, puis son PDF joint sous `root / PDF_DIRECTORY` ; rend le PDF."""
+    directory = root / PDF_DIRECTORY
+    directory.mkdir(parents=True)
+    path = root / "mail.eml"
+    path.write_bytes(bytes(message))
+    return save_pdf_attachment(path, directory)
+
+
+def decision(message: EmailMessage, root: Path) -> str | tuple[str, bytes]:
+    """Ce que la réception décide d'un mail : son motif de rejet, ou le nom et les octets du PDF."""
+    try:
+        written = save(message, root)
+    except RejectedMail as rejection:
+        return str(rejection)
+    return written.name, written.read_bytes()
+
+
+def forwarded() -> EmailMessage:
+    """Mail qui porte en seule pièce jointe un message transféré, sans nom de fichier."""
+    message = mail()
+    message.add_attachment(mail(body="Commande transférée.\n"))
+    return message
+
+
+def test_la_reception_rend_les_pdf_et_les_mails_du_dossier_dans_l_ordre_de_leurs_noms(tmp_path):
     (tmp_path / "c.pdf").mkdir()
-    for name in ("a.pdf", "B.PDF", "notes.txt", "c.pdf/d.pdf"):
+    for name in ("a.pdf", "B.PDF", "b.eml", "A.EML", "notes.txt", "c.pdf/d.pdf"):
         (tmp_path / name).write_bytes(b"")
-    assert [path.name for path in receive(tmp_path)] == ["B.PDF", "a.pdf"]
+    assert [path.name for path in receive(tmp_path)] == ["A.EML", "B.PDF", "a.pdf", "b.eml"]
 
 
 def test_deux_documents_qui_ne_different_que_par_l_extension_partagent_leur_nom():
     documents = [Path("lot/A.pdf"), Path("lot/B.pdf"), Path("lot/A.PDF"), Path("lot/C.Pdf")]
     assert shared_names([*documents, Path("lot/C.pdf")]) == ["A", "C"]
+
+
+def test_le_pdf_seul_joint_a_un_mail_s_ecrit_dans_le_dossier_sous_son_nom(tmp_path):
+    written = save(mail(("Commande.pdf", PDF_TYPE)), tmp_path)
+    assert (written, written.read_bytes()) == (tmp_path / PDF_DIRECTORY / "Commande.pdf", PDF)
+
+
+@pytest.mark.parametrize(
+    ("message", "reason"),
+    [
+        pytest.param(mail(body=ORDER_BODY), "mail sans pièce jointe", id="sans-piece-jointe"),
+        pytest.param(
+            mail(("a.pdf", PDF_TYPE), ("b.pdf", PDF_TYPE), ("logo.png", "image/png")),
+            "mail avec 3 pièces jointes (a.pdf, b.pdf, logo.png), un seul PDF attendu",
+            id="plusieurs-pieces-jointes",
+        ),
+        pytest.param(
+            mail(("Commande.pdf", PDF_TYPE), (None, "image/png")),
+            "mail avec 2 pièces jointes (Commande.pdf, image/png), un seul PDF attendu",
+            id="une-sans-nom-parmi-plusieurs",
+        ),
+        pytest.param(
+            mail(("devis.docx", DOCX_TYPE)),
+            "pièce jointe « devis.docx » qui n'est pas un PDF",
+            id="seule-piece-jointe-docx",
+        ),
+        pytest.param(
+            forwarded(),
+            "pièce jointe « message/rfc822 » qui n'est pas un PDF",
+            id="seul-message-transfere",
+        ),
+    ],
+)
+def test_un_mail_qui_ne_porte_pas_un_seul_pdf_est_rejete_avec_son_motif(tmp_path, message, reason):
+    with pytest.raises(RejectedMail) as rejection:
+        save(message, tmp_path)
+    assert (str(rejection.value), list((tmp_path / PDF_DIRECTORY).iterdir())) == (reason, [])
+
+
+def test_un_mail_dont_le_corps_inclut_une_image_se_traite_comme_son_seul_pdf_joint(tmp_path):
+    message = EmailMessage()
+    message.set_content('<p>Commande ci-jointe.</p><img src="cid:logo">', subtype="html")
+    message.add_related(b"logo", maintype="image", subtype="png", cid="<logo>")
+    message.add_attachment(PDF, maintype="application", subtype="pdf", filename="Commande.pdf")
+    assert decision(message, tmp_path) == ("Commande.pdf", PDF)
+
+
+def test_une_piece_jointe_octet_stream_nommee_en_pdf_est_un_pdf(tmp_path):
+    message = mail(("Commande.PDF", "application/octet-stream"))
+    assert decision(message, tmp_path) == ("Commande.PDF", PDF)
+
+
+def test_deux_mails_au_meme_corps_mais_aux_pieces_jointes_differentes_sont_decides_autrement(
+    tmp_path,
+):
+    pdf = decision(mail(("Commande.pdf", PDF_TYPE), body=ORDER_BODY), tmp_path / "pdf")
+    docx = decision(mail(("devis.docx", DOCX_TYPE), body=ORDER_BODY), tmp_path / "docx")
+    assert (pdf, docx) == (
+        ("Commande.pdf", PDF),
+        "pièce jointe « devis.docx » qui n'est pas un PDF",
+    )
+
+
+@pytest.mark.parametrize(
+    "attachments",
+    [
+        pytest.param([("Commande.pdf", PDF_TYPE)], id="un-pdf"),
+        pytest.param([], id="aucune"),
+        pytest.param([("devis.docx", DOCX_TYPE)], id="un-docx"),
+    ],
+)
+def test_deux_mails_aux_memes_pieces_jointes_sont_decides_de_meme_quel_que_soit_leur_corps(
+    tmp_path, attachments
+):
+    bodies = {"texte": "Bonjour.\n", "commande": ORDER_BODY, "vide": "", "absent": None}
+    decisions = {
+        decision(mail(*attachments, body=body), tmp_path / name) for name, body in bodies.items()
+    }
+    assert len(decisions) == 1
+
+
+@pytest.mark.parametrize(
+    "name",
+    [
+        pytest.param("../../x.pdf", id="barres-obliques"),
+        pytest.param(r"..\..\x.pdf", id="antislashs"),
+        pytest.param("{tmp_path}/x.pdf", id="chemin-absolu"),
+    ],
+)
+def test_une_piece_jointe_nommee_par_un_chemin_s_ecrit_dans_le_dossier_sous_son_dernier_composant(
+    tmp_path, name
+):
+    written = save(mail((name.format(tmp_path=tmp_path), PDF_TYPE)), tmp_path)
+    files = sorted(path for path in tmp_path.rglob("*") if path.is_file())
+    assert (written, files) == (
+        tmp_path / PDF_DIRECTORY / "x.pdf",
+        [tmp_path / "mail.eml", tmp_path / PDF_DIRECTORY / "x.pdf"],
+    )
+
+
+@pytest.mark.parametrize(
+    "name",
+    [
+        pytest.param(None, id="absent"),
+        pytest.param("", id="vide"),
+        pytest.param("..", id="dossier-parent"),
+    ],
+)
+def test_un_pdf_joint_sans_nom_de_fichier_utilisable_s_ecrit_sous_piece_jointe(tmp_path, name):
+    assert decision(mail((name, PDF_TYPE)), tmp_path) == ("piece_jointe.pdf", PDF)

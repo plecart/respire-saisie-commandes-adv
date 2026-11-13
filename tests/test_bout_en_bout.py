@@ -1,8 +1,10 @@
-"""Test de bout en bout sans IA : les cinq documents fournis, de la ligne de commande aux sorties.
+"""Test de bout en bout sans IA : les documents fournis, de la ligne de commande aux sorties.
 
-Un faux extracteur rend l'extraction attendue de chaque document, versionnée dans
-`donnees/extractions/` et tirée des transcriptions manuelles relues deux fois. Les attendus sont
-ceux du PRD #1, § « Résultats attendus sur les documents fournis ».
+Le lot fourni compte cinq PDF et deux mails : `Mail_valide.eml` porte `Commande_3.pdf` en seule
+pièce jointe, `Mail_sans_piece_jointe.eml` n'en porte aucune. Un faux extracteur rend
+l'extraction attendue de chaque PDF, versionnée dans `donnees/extractions/` et tirée des
+transcriptions manuelles relues deux fois. Les attendus sont ceux du PRD #1, § « Résultats
+attendus sur les documents fournis », et ceux de l'issue #6 pour les mails.
 """
 
 import json
@@ -23,6 +25,8 @@ TABLE = [
     ["Commande_3", "accepté", "10103", "208532", "2026-01-13", "18", "1 592,99"],
     ["Commande_5", "bloqué", "10106", "2026-11-0457", "2026-11-10", "6", "601,53"],
     ["Document_4", "bloqué", "—", "—", "—", "—", "—"],
+    ["Mail_sans_piece_jointe", "bloqué", "—", "—", "—", "—", "—"],
+    ["Mail_valide", "accepté", "10103", "208532", "2026-01-13", "18", "1 592,99"],
 ]
 """Tableau récapitulatif attendu, documents dans l'ordre de leurs noms."""
 
@@ -47,7 +51,10 @@ def extraction(name: str) -> str:
 
 
 def extract(document: Path) -> RawFields:
-    """Faux extracteur : l'extraction attendue du document, retrouvée par son nom."""
+    """Faux extracteur : l'extraction attendue du PDF reçu, retrouvée par son nom.
+
+    Le PDF reçu pour un mail porte le nom de sa pièce jointe : `Mail_valide` est lu `Commande_3`.
+    """
     return RawFields.model_validate_json(extraction(document.stem))
 
 
@@ -110,6 +117,8 @@ def test_le_terminal_affiche_le_tableau_recapitulatif_sans_le_detail(lot):
             ],
             id="commande-5",
         ),
+        pytest.param("Mail_sans_piece_jointe", ["mail sans pièce jointe"], id="mail-sans-pj"),
+        pytest.param("Mail_valide", [], id="mail-valide"),
     ],
 )
 def test_le_rapport_porte_les_anomalies_attendues(lot, document, expected):
@@ -117,14 +126,20 @@ def test_le_rapport_porte_les_anomalies_attendues(lot, document, expected):
     assert anomalies(report(output)).get(document, []) == expected
 
 
-def test_le_dossier_de_sortie_contient_exactement_quatre_fichiers(lot):
+def test_le_dossier_de_sortie_contient_le_json_de_chaque_commande_produite_et_le_rapport(lot):
     output, _ = lot
     assert sorted(path.name for path in output.iterdir()) == [
         "Commande_1.json",
         "Commande_2.json",
         "Commande_3.json",
+        "Mail_valide.json",
         "rapport.md",
     ]
+
+
+def test_un_mail_valide_produit_la_commande_de_son_pdf_joint(lot):
+    output, _ = lot
+    assert (output / "Mail_valide.json").read_bytes() == (output / "Commande_3.json").read_bytes()
 
 
 def test_une_commande_produite_est_au_format_exact_de_l_enonce(lot):
@@ -133,7 +148,7 @@ def test_une_commande_produite_est_au_format_exact_de_l_enonce(lot):
     assert json.dumps(written) == json.dumps(COMMANDE_2)
 
 
-@pytest.mark.parametrize("document", [row[0] for row in TABLE[1:]])
+@pytest.mark.parametrize("document", sorted(path.stem for path in EXTRACTIONS.glob("*.json")))
 def test_une_extraction_attendue_respecte_le_schema_des_champs_bruts(document):
     text = extraction(document)
     assert RawFields.model_validate_json(text).model_dump(mode="json") == json.loads(text)

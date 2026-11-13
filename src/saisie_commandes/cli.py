@@ -5,6 +5,9 @@ métier et sorties (PRD #1, « Modules ») : le dossier de sortie reçoit un JSO
 produite et le rapport `rapport.md`, le terminal le tableau récapitulatif du lot. Les
 référentiels se lisent dans `referentiels/`, sous le dossier courant.
 
+Un mail se traite comme le PDF qu'il porte en seule pièce jointe, écrit le temps de son
+extraction dans un dossier temporaire ; tout autre mail est bloqué sans être extrait.
+
 L'extraction est injectée (`main`, `process_documents`). Aucun extracteur n'est encore branché :
 lancée seule, la commande s'arrête sur un message, sans rien écrire. Elle s'arrête de même sur
 deux documents du même nom sans extension, dont les sorties se confondraient.
@@ -12,13 +15,21 @@ deux documents du même nom sans extension, dont les sorties se confondraient.
 
 import argparse
 import sys
+import tempfile
 from collections.abc import Callable, Iterable, Sequence
 from pathlib import Path
 
 from saisie_commandes.champs import RawFields
-from saisie_commandes.reception import receive, shared_names
+from saisie_commandes.reception import (
+    RejectedMail,
+    is_mail,
+    receive,
+    save_pdf_attachment,
+    shared_names,
+)
 from saisie_commandes.referentiels import ReferenceData
 from saisie_commandes.regles import apply_rules
+from saisie_commandes.resultat import Anomaly, DocumentResult
 from saisie_commandes.sorties import Results, summary_table, write_outputs
 
 type Extractor = Callable[[Path], RawFields]
@@ -34,9 +45,37 @@ def process_documents(
 
     Rend les résultats du lot, par nom de document sans extension, dans l'ordre des documents.
     """
-    results = {document.stem: apply_rules(extract(document), references) for document in documents}
+    results = {document.stem: _process(document, extract, references) for document in documents}
     write_outputs(results, output_dir)
     return results
+
+
+def _process(document: Path, extract: Extractor, references: ReferenceData) -> DocumentResult:
+    """Résultat d'un document : ses champs bruts passés aux règles, ou le motif de son blocage."""
+    try:
+        fields = _raw_fields(document, extract)
+    except RejectedMail as rejection:
+        return _blocked(str(rejection))
+    return apply_rules(fields, references)
+
+
+def _raw_fields(document: Path, extract: Extractor) -> RawFields:
+    """Champs bruts d'un document ; ceux d'un mail sont ceux de son seul PDF joint.
+
+    Le PDF d'un mail s'écrit dans un dossier temporaire, supprimé après l'extraction.
+
+    Raises:
+        RejectedMail: le document est un mail qui ne porte pas un seul PDF.
+    """
+    if not is_mail(document):
+        return extract(document)
+    with tempfile.TemporaryDirectory() as directory:
+        return extract(save_pdf_attachment(document, Path(directory)))
+
+
+def _blocked(reason: str) -> DocumentResult:
+    """Résultat d'un document bloqué avant l'extraction ou les règles : son motif, rien d'établi."""
+    return DocumentResult((Anomaly(reason, blocking=True),))
 
 
 def main(argv: Sequence[str] | None = None, extract: Extractor | None = None) -> int:
