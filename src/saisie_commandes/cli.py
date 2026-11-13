@@ -35,6 +35,7 @@ from saisie_commandes.referentiels import ReferenceData
 from saisie_commandes.regles import apply_rules
 from saisie_commandes.resultat import Anomaly, DocumentResult
 from saisie_commandes.sorties import Results, summary_table, write_outputs
+from saisie_commandes.valeurs import on_one_line
 
 type Extractor = Callable[[Path], RawFields]
 """Lit les champs bruts d'un document, désigné par son chemin."""
@@ -113,9 +114,8 @@ def main(argv: Sequence[str] | None = None, extract: Extractor | None = None) ->
             return _refuse(str(error))
     documents = receive(args.entree)
     if shared := shared_names(documents):
-        return _refuse(
-            "plusieurs documents portent le nom " + ", ".join(f"« {n} »" for n in shared)
-        )
+        names = ", ".join(f"« {on_one_line(name)} »" for name in shared)
+        return _refuse(f"plusieurs documents portent le nom {names}")
     references = ReferenceData.load(_REFERENCES)
     results = process_documents(documents, args.sortie, extract, references)
     print(summary_table(results))
