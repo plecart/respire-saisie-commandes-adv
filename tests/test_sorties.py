@@ -144,3 +144,9 @@ def test_une_relance_dans_le_meme_dossier_ecrit_ce_qu_ecrirait_un_dossier_neuf(
     write_outputs({"Commande": second}, tmp_path / "relance")
     write_outputs({"Commande": second}, tmp_path / "neuf")
     assert written_files(tmp_path / "relance") == written_files(tmp_path / "neuf")
+
+
+def test_une_barre_verticale_imprimee_ne_decale_pas_les_colonnes_du_tableau():
+    result = DocumentResult((), Summary(client_order_ref="12|34"))
+    last_row = summary_table({"A|B": result}).splitlines()[-1]
+    assert last_row == "| A\\|B | accepté | — | 12\\|34 | — | — | — |"

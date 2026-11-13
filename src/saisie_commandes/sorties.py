@@ -47,11 +47,12 @@ def write_outputs(results: Results, directory: Path) -> None:
 def summary_table(results: Results) -> str:
     """Tableau récapitulatif du lot en Markdown, une ligne par document, sans fin de ligne finale.
 
-    Une valeur qui n'a pas été établie s'écrit « — » ; un total, à la française.
+    Une valeur qui n'a pas été établie s'écrit « — » ; un total, à la française. Une barre
+    verticale imprimée s'échappe : elle ne ferme pas sa colonne.
     """
     rows = [_COLUMNS, ("---",) * len(_COLUMNS)]
     rows += [_summary_row(name, result) for name, result in results.items()]
-    return "\n".join(f"| {' | '.join(row)} |" for row in rows)
+    return "\n".join(f"| {' | '.join(map(_escape, row))} |" for row in rows)
 
 
 def _order_json(order: Order) -> dict[str, object]:
@@ -92,6 +93,11 @@ def _cell(value: int | str | date | Decimal | None) -> str:
     if isinstance(value, Decimal):
         return format_amount(value)
     return str(value)
+
+
+def _escape(cell: str) -> str:
+    """Cellule de tableau Markdown, sa barre verticale échappée."""
+    return cell.replace("|", "\\|")
 
 
 def _report(results: Results) -> str:
