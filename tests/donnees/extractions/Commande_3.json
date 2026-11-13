@@ -1,0 +1,28 @@
+{
+  "document_type": "commande",
+  "pharmacy_name": "GRANDE PHARMACIE DU LAC",
+  "postal_code": "74600",
+  "order_number": "208532",
+  "delivery_date": "13/01/2026",
+  "total_excl_tax": "1592,99",
+  "lines": [
+    {"ean": "3760368741584", "quantity": "18", "unit": null, "free_units": null, "catalog_price": "6,40", "discounts": ["35"], "line_total": "74,88"},
+    {"ean": "3760368740228", "quantity": "12", "unit": null, "free_units": null, "catalog_price": "4,58", "discounts": ["35"], "line_total": "35,72"},
+    {"ean": "3760368741874", "quantity": "9", "unit": null, "free_units": null, "catalog_price": "9,25", "discounts": ["35"], "line_total": "54,11"},
+    {"ean": "3760368740884", "quantity": "24", "unit": null, "free_units": null, "catalog_price": "9,75", "discounts": ["35"], "line_total": "152,10"},
+    {"ean": "3760368740730", "quantity": "12", "unit": null, "free_units": null, "catalog_price": "10,75", "discounts": ["35"], "line_total": "83,85"},
+    {"ean": "3760368742505", "quantity": "12", "unit": null, "free_units": null, "catalog_price": "9,75", "discounts": ["35"], "line_total": "76,05"},
+    {"ean": "3760368742772", "quantity": "24", "unit": null, "free_units": null, "catalog_price": "10,75", "discounts": ["0"], "line_total": "258,00"},
+    {"ean": "3760368742383", "quantity": "8", "unit": null, "free_units": null, "catalog_price": "18,25", "discounts": ["35"], "line_total": "94,90"},
+    {"ean": "3760368740952", "quantity": "8", "unit": null, "free_units": null, "catalog_price": "16,15", "discounts": ["35"], "line_total": "83,98"},
+    {"ean": "3770018642413", "quantity": "6", "unit": null, "free_units": null, "catalog_price": "14,92", "discounts": ["35"], "line_total": "58,19"},
+    {"ean": "3760368742321", "quantity": "12", "unit": null, "free_units": null, "catalog_price": "9,75", "discounts": ["35"], "line_total": "76,05"},
+    {"ean": "3760368741935", "quantity": "6", "unit": null, "free_units": null, "catalog_price": "20,75", "discounts": ["35"], "line_total": "80,93"},
+    {"ean": "3760368742314", "quantity": "18", "unit": null, "free_units": null, "catalog_price": "9,75", "discounts": ["35"], "line_total": "114,08"},
+    {"ean": "3760368741614", "quantity": "12", "unit": null, "free_units": null, "catalog_price": "9,75", "discounts": ["35"], "line_total": "76,05"},
+    {"ean": "3760368742796", "quantity": "6", "unit": null, "free_units": null, "catalog_price": "9,75", "discounts": ["0"], "line_total": "58,50"},
+    {"ean": "3760368742499", "quantity": "6", "unit": null, "free_units": null, "catalog_price": "20,65", "discounts": ["35"], "line_total": "80,54"},
+    {"ean": "3760368742482", "quantity": "6", "unit": null, "free_units": null, "catalog_price": "20,65", "discounts": ["35"], "line_total": "80,54"},
+    {"ean": "3760368740600", "quantity": "9", "unit": null, "free_units": null, "catalog_price": "9,32", "discounts": ["35"], "line_total": "54,52"}
+  ]
+}

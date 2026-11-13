@@ -1,0 +1,16 @@
+{
+  "document_type": "commande",
+  "pharmacy_name": "PHARMACIE DU VIEUX LILLE",
+  "postal_code": "59800",
+  "order_number": "2026-11-0457",
+  "delivery_date": "10/11/2026",
+  "total_excl_tax": "601,53",
+  "lines": [
+    {"ean": "3760368740730", "quantity": "24", "unit": "UN", "free_units": null, "catalog_price": "10,75", "discounts": ["35%"], "line_total": "167,70"},
+    {"ean": "3760368742338", "quantity": "12", "unit": "UN", "free_units": null, "catalog_price": "10,75", "discounts": ["35%"], "line_total": "83,85"},
+    {"ean": null, "quantity": "6", "unit": "UN", "free_units": null, "catalog_price": "17,45", "discounts": ["35%"], "line_total": "68,06"},
+    {"ean": "3760368742383", "quantity": "2", "unit": "COL6", "free_units": null, "catalog_price": "18,25", "discounts": ["35%"], "line_total": "142,35"},
+    {"ean": "3760368799912", "quantity": "6", "unit": "UN", "free_units": null, "catalog_price": "16,90", "discounts": ["35%"], "line_total": "65,91"},
+    {"ean": "3000000001271", "quantity": "12", "unit": "UN", "free_units": null, "catalog_price": "9,90", "discounts": ["38%"], "line_total": "73,66"}
+  ]
+}

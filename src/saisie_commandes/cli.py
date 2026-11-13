@@ -1,0 +1,65 @@
+"""Ligne de commande : traite un dossier de documents reçus et écrit les sorties du lot.
+
+`saisie-commandes <dossier d'entrée> <dossier de sortie>` enchaîne réception, extraction, règles
+métier et sorties (PRD #1, « Modules ») : le dossier de sortie reçoit un JSON par commande
+produite et le rapport `rapport.md`, le terminal le tableau récapitulatif du lot. Les
+référentiels se lisent dans `referentiels/`, sous le dossier courant.
+
+L'extraction est injectée (`main`, `process_folder`). Aucun extracteur n'est encore branché :
+lancée seule, la commande s'arrête sur un message, sans rien écrire.
+"""
+
+import argparse
+import sys
+from collections.abc import Callable, Sequence
+from pathlib import Path
+
+from saisie_commandes.champs import RawFields
+from saisie_commandes.reception import receive
+from saisie_commandes.referentiels import ReferenceData
+from saisie_commandes.regles import apply_rules
+from saisie_commandes.sorties import Results, summary_table, write_outputs
+
+type Extractor = Callable[[Path], RawFields]
+"""Lit les champs bruts d'un document, désigné par son chemin."""
+
+_REFERENCES = Path("referentiels")
+_NO_EXTRACTOR = (
+    "saisie-commandes : aucun extracteur de documents n'est branché, aucun document n'a été traité."
+)
+
+
+def process_folder(
+    input_dir: Path, output_dir: Path, extract: Extractor, references: ReferenceData
+) -> Results:
+    """Traite chaque document reçu dans `input_dir` et écrit les sorties du lot dans `output_dir`.
+
+    Rend les résultats du lot, par nom de document sans extension, dans l'ordre de réception.
+    """
+    results = {
+        document.stem: apply_rules(extract(document), references) for document in receive(input_dir)
+    }
+    write_outputs(results, output_dir)
+    return results
+
+
+def main(argv: Sequence[str] | None = None, extract: Extractor | None = None) -> int:
+    """Point d'entrée de `saisie-commandes` ; rend le code de sortie, non nul sans extracteur.
+
+    `argv` remplace les arguments de la ligne de commande ; `extract` est l'extracteur injecté.
+    """
+    parser = argparse.ArgumentParser(
+        prog="saisie-commandes",
+        description="Saisit les bons de commande d'un dossier en commandes de vente Odoo.",
+    )
+    parser.add_argument("entree", type=Path, help="dossier des documents reçus")
+    parser.add_argument(
+        "sortie", type=Path, help="dossier des commandes et du rapport, créé s'il manque"
+    )
+    args = parser.parse_args(argv)
+    if extract is None:
+        print(_NO_EXTRACTOR, file=sys.stderr)
+        return 1
+    results = process_folder(args.entree, args.sortie, extract, ReferenceData.load(_REFERENCES))
+    print(summary_table(results))
+    return 0
