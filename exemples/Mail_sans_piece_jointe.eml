@@ -1,0 +1,24 @@
+From: Grande Pharmacie du Lac <commandes@pharmacie-du-lac.example>
+To: ADV Respire <adv@respire.example>
+Subject: Commande 208532
+Date: Mon, 12 Jan 2026 09:15:00 +0100
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 8bit
+MIME-Version: 1.0
+
+Bonjour,
+
+Merci d'enregistrer notre commande n° 208532, à livrer le 13/01/2026 :
+
+EAN            Qté  Prix catalogue  Remise
+3760368741584   18          6,40 €    35 %
+3760368740228   12          4,58 €    35 %
+3760368741874    9          9,25 €    35 %
+3760368740884   24          9,75 €    35 %
+(...)
+
+Total HT des 18 lignes : 1 592,99 €
+
+Cordialement,
+Grande Pharmacie du Lac
+74600
