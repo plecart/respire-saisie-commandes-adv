@@ -76,9 +76,11 @@ Calcul : quantité × prix catalogue × (1 − remise) = total de ligne, et somm
 
 Un fichier dédié contient la fonction qui créerait la commande par XML-RPC. Elle est écrite et testée à blanc, jamais exécutée.
 
-### 9. Lancement en une commande : Docker Compose, un seul conteneur
+### 9. Lancement en une commande : uv, et un script d'amorçage pour macOS
 
-Pas de base de données ni de service annexe. La clé d'API est lue dans un fichier `.env` non versionné : elle est indispensable, sans elle aucune extraction n'est possible.
+Le programme se lance par `uv run --locked saisie-commandes <entrée> <sortie>` : uv installe la version de Python et les dépendances figées par `uv.lock`. Pour qui n'a pas uv, `sh lancer.sh` (macOS) l'installe dans le dossier de l'utilisateur, sans droits administrateur, puis lance le programme.
+
+Pas de conteneur, de base de données ni de service annexe. La clé d'API est lue dans un fichier `.env` non versionné : elle est indispensable, sans elle aucune extraction n'est possible.
 
 ### 10. Boîte mail (bonus)
 
