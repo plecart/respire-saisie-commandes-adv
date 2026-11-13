@@ -1,0 +1,115 @@
+{
+  "partner_id": 10103,
+  "client_order_ref": "208532",
+  "commitment_date": "2026-01-13",
+  "order_line": [
+    {
+      "product_ref": "DENTBN75",
+      "product_uom_qty": 18,
+      "price_unit": 6.4,
+      "discount": 35.0
+    },
+    {
+      "product_ref": "DROSFC15",
+      "product_uom_qty": 12,
+      "price_unit": 4.58,
+      "discount": 35.0
+    },
+    {
+      "product_ref": "DROSFA50",
+      "product_uom_qty": 9,
+      "price_unit": 9.25,
+      "discount": 35.0
+    },
+    {
+      "product_ref": "DSTPRECHFC",
+      "product_uom_qty": 24,
+      "price_unit": 9.75,
+      "discount": 35.0
+    },
+    {
+      "product_ref": "DSTPFC50",
+      "product_uom_qty": 12,
+      "price_unit": 10.75,
+      "discount": 35.0
+    },
+    {
+      "product_ref": "DSTPRECHME",
+      "product_uom_qty": 12,
+      "price_unit": 9.75,
+      "discount": 35.0
+    },
+    {
+      "product_ref": "DSTPVT50",
+      "product_uom_qty": 24,
+      "price_unit": 10.75,
+      "discount": 0.0
+    },
+    {
+      "product_ref": "FHINT30-50",
+      "product_uom_qty": 8,
+      "price_unit": 18.25,
+      "discount": 35.0
+    },
+    {
+      "product_ref": "GELCHINT50",
+      "product_uom_qty": 8,
+      "price_unit": 16.15,
+      "discount": 35.0
+    },
+    {
+      "product_ref": "HDEM150",
+      "product_uom_qty": 6,
+      "price_unit": 14.92,
+      "discount": 35.0
+    },
+    {
+      "product_ref": "DSTPRECHEC",
+      "product_uom_qty": 12,
+      "price_unit": 9.75,
+      "discount": 35.0
+    },
+    {
+      "product_ref": "DROSFC150",
+      "product_uom_qty": 6,
+      "price_unit": 20.75,
+      "discount": 35.0
+    },
+    {
+      "product_ref": "DSTPRECHDM",
+      "product_uom_qty": 18,
+      "price_unit": 9.75,
+      "discount": 35.0
+    },
+    {
+      "product_ref": "DSTPRECHRP",
+      "product_uom_qty": 12,
+      "price_unit": 9.75,
+      "discount": 35.0
+    },
+    {
+      "product_ref": "DSTPRECHVT",
+      "product_uom_qty": 6,
+      "price_unit": 9.75,
+      "discount": 0.0
+    },
+    {
+      "product_ref": "SERHINTPO30",
+      "product_uom_qty": 6,
+      "price_unit": 20.65,
+      "discount": 35.0
+    },
+    {
+      "product_ref": "SERCPPO30",
+      "product_uom_qty": 6,
+      "price_unit": 20.65,
+      "discount": 35.0
+    },
+    {
+      "product_ref": "SFB15",
+      "product_uom_qty": 9,
+      "price_unit": 9.32,
+      "discount": 35.0
+    }
+  ]
+}

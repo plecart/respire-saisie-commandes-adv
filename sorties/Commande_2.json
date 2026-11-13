@@ -1,0 +1,37 @@
+{
+  "partner_id": 10107,
+  "client_order_ref": "156006",
+  "commitment_date": "2026-01-20",
+  "order_line": [
+    {
+      "product_ref": "DSTPRECHFC",
+      "product_uom_qty": 9,
+      "price_unit": 9.75,
+      "discount": 0.0
+    },
+    {
+      "product_ref": "DSTPRECHVT",
+      "product_uom_qty": 6,
+      "price_unit": 10.0,
+      "discount": 0.0
+    },
+    {
+      "product_ref": "DSTPFC50",
+      "product_uom_qty": 24,
+      "price_unit": 10.75,
+      "discount": 0.0
+    },
+    {
+      "product_ref": "DSTPRECHME",
+      "product_uom_qty": 9,
+      "price_unit": 0.0,
+      "discount": 0.0
+    },
+    {
+      "product_ref": "DSTPVT50",
+      "product_uom_qty": 12,
+      "price_unit": 10.0,
+      "discount": 0.0
+    }
+  ]
+}
