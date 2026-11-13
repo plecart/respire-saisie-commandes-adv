@@ -11,12 +11,12 @@ import json
 from pathlib import Path
 
 import pytest
+from extractions import EXTRACTIONS, extraction
 
 from saisie_commandes.champs import RawFields
 from saisie_commandes.cli import main
 
 ROOT = Path(__file__).parents[1]
-EXTRACTIONS = Path(__file__).parent / "donnees" / "extractions"
 
 TABLE = [
     ["Document", "Statut", "Client", "Référence", "Livraison", "Lignes", "Total HT"],
@@ -43,11 +43,6 @@ COMMANDE_2 = {
     ],
 }
 """Commande attendue de Commande_2 : sans remise imprimée, une ligne à 0,00 €."""
-
-
-def extraction(name: str) -> str:
-    """JSON de l'extraction attendue d'un document, désigné par son nom sans extension."""
-    return (EXTRACTIONS / f"{name}.json").read_text(encoding="utf-8")
 
 
 def extract(document: Path) -> RawFields:

@@ -13,6 +13,7 @@ import anthropic
 import httpx2
 import pymupdf
 import pytest
+from extractions import extraction
 
 from saisie_commandes.champs import RawFields
 from saisie_commandes.extraction import (
@@ -25,9 +26,7 @@ from saisie_commandes.extraction import (
 
 EXEMPLES = Path(__file__).parents[1] / "exemples"
 COMMANDE_3 = EXEMPLES / "Commande_3.pdf"
-ANSWER = (Path(__file__).parent / "donnees" / "extractions" / "Commande_3.json").read_text(
-    encoding="utf-8"
-)
+ANSWER = extraction("Commande_3")
 """Champs bruts attendus de Commande_3, en JSON : la réponse d'une lecture réussie."""
 MODEL = "claude-test"
 REQUEST = httpx2.Request("POST", "https://api.anthropic.com/v1/messages")

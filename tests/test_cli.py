@@ -6,6 +6,7 @@ from importlib.metadata import entry_points
 from pathlib import Path
 
 import pytest
+from extractions import extraction
 from mails import PDF, PDF_TYPE, mail
 
 from saisie_commandes.champs import DocumentType, RawFields
@@ -15,8 +16,6 @@ from saisie_commandes.referentiels import ReferenceData
 from saisie_commandes.resultat import Anomaly, DocumentResult
 
 ROOT = Path(__file__).parents[1]
-COMMANDE_3 = Path(__file__).parent / "donnees" / "extractions" / "Commande_3.json"
-"""Extraction attendue de Commande_3, une commande acceptée."""
 
 NOT_AN_ORDER = RawFields(
     document_type=DocumentType.OTHER,
@@ -156,7 +155,7 @@ def test_un_document_dont_la_lecture_echoue_est_bloque_sans_arreter_le_lot(
     def extract(document: Path) -> RawFields:
         if document.stem == "Illisible":
             raise ExtractionError("réponse tronquée")
-        return RawFields.model_validate_json(COMMANDE_3.read_text(encoding="utf-8"))
+        return RawFields.model_validate_json(extraction("Commande_3"))
 
     output = tmp_path / "sorties"
     monkeypatch.chdir(ROOT)
