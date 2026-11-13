@@ -4,7 +4,9 @@ Le JSON d'une commande a exactement la forme de l'énoncé (PRD #1, « Commande 
 quantité entière, prix et remise décimaux, remise en pourcentage (`35.0`, `0.0` sans remise) ;
 une référence ou une date qui n'a pas pu être lue y est une chaîne vide. Le rapport `rapport.md`
 s'ouvre sur le tableau récapitulatif du lot (`summary_table`), puis liste les anomalies de chaque
-document qui en a, en français, situées par leur ligne et leur EAN.
+document qui en a, en français, situées par leur ligne et leur EAN. L'un et l'autre citent du
+texte non fiable, lu sur un document ou tiré de son nom de fichier : chaque cellule, chaque
+titre et chaque anomalie y tient sur sa ligne (`on_one_line`).
 
 Les fichiers s'écrivent en UTF-8, fins de ligne Unix (LF), quel que soit le système.
 """
@@ -16,7 +18,7 @@ from decimal import Decimal
 from pathlib import Path
 
 from saisie_commandes.resultat import Anomaly, DocumentResult, Order
-from saisie_commandes.valeurs import format_amount
+from saisie_commandes.valeurs import format_amount, on_one_line
 
 type Results = Mapping[str, DocumentResult]
 """Résultats d'un lot, par nom de document sans extension, dans l'ordre du lot."""
@@ -47,8 +49,8 @@ def write_outputs(results: Results, directory: Path) -> None:
 def summary_table(results: Results) -> str:
     """Tableau récapitulatif du lot en Markdown, une ligne par document, sans fin de ligne finale.
 
-    Une valeur qui n'a pas été établie s'écrit « — » ; un total, à la française. Une barre
-    verticale imprimée s'échappe : elle ne ferme pas sa colonne.
+    Une valeur qui n'a pas été établie s'écrit « — » ; un total, à la française. Chaque cellule
+    tient sur sa ligne, sa barre verticale échappée : elle ne ferme pas sa colonne.
     """
     rows = [_COLUMNS, ("---",) * len(_COLUMNS)]
     rows += [_summary_row(name, result) for name, result in results.items()]
@@ -96,8 +98,8 @@ def _cell(value: int | str | date | Decimal | None) -> str:
 
 
 def _escape(cell: str) -> str:
-    """Cellule de tableau Markdown, sa barre verticale échappée."""
-    return cell.replace("|", "\\|")
+    """Cellule de tableau Markdown, sur une ligne, sa barre verticale échappée."""
+    return on_one_line(cell).replace("|", "\\|")
 
 
 def _report(results: Results) -> str:
@@ -113,8 +115,8 @@ def _report(results: Results) -> str:
 
 def _anomalies_section(name: str, anomalies: Iterable[Anomaly]) -> str:
     """Section du rapport d'un document : son nom en titre, puis ses anomalies en liste."""
-    items = "\n".join(f"- {_describe(anomaly)}" for anomaly in anomalies)
-    return f"## {name}\n\n{items}"
+    items = "\n".join(f"- {on_one_line(_describe(anomaly))}" for anomaly in anomalies)
+    return f"## {on_one_line(name)}\n\n{items}"
 
 
 def _describe(anomaly: Anomaly) -> str:
