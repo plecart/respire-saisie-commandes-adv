@@ -52,22 +52,30 @@ def test_la_commande_installee_se_nomme_saisie_commandes():
     assert script.load() is main
 
 
-def test_deux_documents_du_meme_nom_refusent_le_lot_sans_rien_ecrire(tmp_path, capsys, monkeypatch):
+@pytest.mark.parametrize(
+    ("name", "shown"),
+    [("A", "A"), ("A\nB", "A\N{REPLACEMENT CHARACTER}B")],
+    ids=["simple", "fin-de-ligne"],
+)
+def test_deux_documents_du_meme_nom_refusent_le_lot_sans_rien_ecrire(
+    tmp_path, capsys, monkeypatch, name, shown
+):
     """`A.pdf` et `A.PDF` ne coexistent que sur un système de fichiers sensible à la casse.
 
-    La réception est donc simulée, pour que le test tourne aussi sous Windows et macOS.
+    La réception est donc simulée, pour que le test tourne aussi sous Windows et macOS ; un nom
+    Linux peut porter une fin de ligne, le message reste sur sa ligne.
     """
     received = tmp_path / "entree"
     monkeypatch.setattr(
         "saisie_commandes.cli.receive",
-        lambda directory: [received / "A.pdf", received / "A.PDF"],
+        lambda directory: [received / f"{name}.pdf", received / f"{name}.PDF"],
     )
     output = tmp_path / "sorties"
     code = main([str(received), str(output)], extract=lambda document: pytest.fail("extrait"))
     assert (code, capsys.readouterr().err, output.exists()) == (
         1,
         (
-            "saisie-commandes : plusieurs documents portent le nom « A », "
+            f"saisie-commandes : plusieurs documents portent le nom « {shown} », "
             "aucun document n'a été traité.\n"
         ),
         False,
