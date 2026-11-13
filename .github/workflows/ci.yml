@@ -1,0 +1,115 @@
+# CI du projet : lint, vérification du format et tests, sur Linux.
+#
+# Les étapes lancent les commandes du projet. Chaque `uses:` est épinglé par l'empreinte de commit
+# de la dernière version publiée de l'action, suivie de son étiquette la plus précise : une
+# étiquette peut être déplacée, une empreinte non. Le garde `if:`, `concurrency` et le pas
+# « Fusion explicite du trunk » se conservent ; tout job ajouté qui tourne sur une PR extrait la
+# tête comme le job `ci`, puis reprend ce pas par `*fusion`.
+
+name: CI
+
+# Aucune étape n'écrit sur le dépôt : le jeton ne reçoit que la lecture. Le défaut d'un dépôt
+# peut être bien plus large ; un job qui doit écrire élève ses droits à son niveau, jamais le
+# workflow entier.
+permissions:
+  contents: read
+
+on:
+  pull_request:
+    # `ready_for_review` produit le premier run d'une PR : le garde `if:` du job `ci` saute toute
+    # draft, et aucun run n'a donc couvert son SHA. `cycle-pr` sort du draft, puis attend ce run
+    # (Étape 5) ; chaque push en lance un autre ; `reopened` relance une PR dont l'événement s'est
+    # perdu, ou dont le trunk a changé la définition du workflow depuis le déclenchement : seul un
+    # événement neuf la relit.
+    types: [opened, synchronize, reopened, ready_for_review]
+  push:
+    branches: [main]
+
+# Un run par PR, le plus récent : un push qui en suit un autre annule le run encore en cours de la
+# même PR, qui ne vérifiait plus la tête. Sur un push vers `main`, `github.event.pull_request` est
+# vide : le groupe se replie sur le SHA, propre à chaque commit, et rien ne s'annule.
+concurrency:
+  group: ci-${{ github.event.pull_request.number || github.sha }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  ci:
+    name: Lint + Format + Tests
+    runs-on: ubuntu-latest
+
+    # Aucune PR en draft ne tourne, quel que soit l'événement — ouverture, push, réouverture : une
+    # draft change à chaque commit, et la CI ne paie un run que là où son verdict peut tenir — au
+    # passage en ready, puis à chaque push. Un rouge propre à la plateforme cible se voit donc au
+    # passage en ready, après la relecture (`cycle-pr`, Étape 4) : le prix assumé. Une PR ouverte
+    # prête — un bot de dépendances, une branche déjà écrite — tourne dès l'ouverture.
+    #
+    # La condition sur `event_name` est nécessaire : sur un push vers `main`, l'objet
+    # `pull_request` n'existe pas.
+    if: github.event_name != 'pull_request' || github.event.pull_request.draft == false
+
+    steps:
+      # Sur une PR, la tête, que le pas suivant fusionne au trunk courant ; sur un push vers `main`,
+      # le commit poussé, et rien ne se fusionne.
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          fetch-depth: 0
+
+      # La fusion explicite du trunk, écrite ici en entier sous l'ancre `fusion`, que tout autre job
+      # d'une PR reprend par `*fusion` (doc GitHub « Reusing workflow configurations ») ; une ancre
+      # ne vaut que dans son fichier. La référence de fusion de la forge est calculée au
+      # déclenchement, et un `gh run rerun` la réutilise : fusionnée ici, la tête l'est au trunk du
+      # moment, et la trace dit lequel à `porte-merge.py trunk` (`cycle-pr` Étape 7). Elle vit dans
+      # la définition du workflow, que le run lit à son commit, jamais dans l'arbre extrait : une
+      # action locale se lirait dans la tête, qu'une PR ouverte avant elle ne porte pas.
+      #
+      # Le trunk est la branche que la PR vise — une PR de lot vise la branche d'intégration de son
+      # issue —, lue dans `refs/remotes/origin/`, que le clone complet écrit pour chaque branche
+      # (`getRefSpecForAllHistory` d'`actions/checkout`, lu le 2026-11-08). Branche et tête passent
+      # par l'environnement, jamais développées dans le script.
+      #
+      # Le runner n'a pas d'identité git : le commit prend celle du robot d'Actions. `--quiet` : le
+      # résumé de la fusion, un nom de fichier par ligne, ne s'écrit pas — un fichier nommé comme la
+      # trace l'imiterait ; un conflit s'écrit quand même. Une tête que le trunk contient déjà ne
+      # construit rien, et `merge` sort pourtant en 0 : le pas échoue plutôt que de donner un commit
+      # du trunk pour une fusion. La trace, en dernier, relit les parents du commit et nomme le
+      # `GITHUB_SHA` du run, la référence de fusion dont il a lu cette définition, qu'un
+      # `gh run rerun` garde : une ligne destinée à `porte-merge.py trunk`, et aucune ligne du
+      # script, que le journal recopie, ne commence par son préfixe — celle qui l'écrit commence
+      # par `printf`.
+      - &fusion
+        name: Fusion explicite du trunk
+        if: github.event_name == 'pull_request'
+        shell: bash
+        env:
+          TRUNK: ${{ github.event.pull_request.base.ref }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: |
+          git checkout --quiet --detach "refs/remotes/origin/$TRUNK"
+          trunk=$(git rev-parse HEAD)
+          if ! git -c 'user.name=github-actions[bot]' -c 'user.email=41898282+github-actions[bot]@users.noreply.github.com' merge --no-ff --quiet -m "Merge $HEAD_SHA into $trunk" "$HEAD_SHA"; then
+            echo "::error::La tête $HEAD_SHA ne se fusionne pas sans conflit dans origin/$TRUNK ($trunk). Fichiers en conflit : $(git diff --name-only --diff-filter=U | paste -sd ' ' -)"
+            exit 1
+          fi
+          if [ "$(git rev-parse HEAD)" = "$trunk" ]; then
+            echo "::error::La tête $HEAD_SHA est déjà dans origin/$TRUNK ($trunk) : rien à fusionner."
+            exit 1
+          fi
+          printf 'Fusion explicite : %s Merge %s into %s (workflow %s)\n' "$(git rev-parse HEAD)" "$(git rev-parse HEAD^2)" "$(git rev-parse HEAD^1)" "$GITHUB_SHA"
+
+      # uv lit la version de Python dans `.python-version`, seule source de l'épinglage, et la
+      # télécharge si le runner ne l'a pas. L'entrée `python-version` de l'action n'est pas
+      # passée : elle l'imposerait par `UV_PYTHON`, au-dessus de ce fichier.
+      - uses: astral-sh/setup-uv@68559e99cc807c1eb7e9238fd43a15bba460eec2 # v10.3.3
+
+      - name: Install
+        run: uv sync
+
+      - name: Lint
+        run: uv run ruff check .
+
+      - name: Format check
+        run: uv run ruff format --check .
+
+      - name: Tests
+        run: uv run pytest
