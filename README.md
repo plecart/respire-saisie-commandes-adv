@@ -17,3 +17,17 @@ Sans Docker, avec [uv](https://docs.astral.sh/uv/), depuis la racine du dépôt 
 ```sh
 uv run --env-file .env saisie-commandes exemples sorties
 ```
+
+## Relève de la boîte Gmail (bonus)
+
+Renseigner dans `.env` l'adresse de la boîte Gmail dédiée, `GMAIL_ADDRESS`, et son mot de passe
+d'application Google, `GMAIL_APP_PASSWORD`, puis lancer, depuis la racine du dépôt :
+
+```sh
+uv run --locked --env-file .env saisie-commandes-releve sorties
+```
+
+Toutes les 10 secondes, la commande relève les mails non lus de la boîte de réception. Chacun
+est marqué lu et traité comme un `.eml` du dossier d'entrée : son tableau récapitulatif s'affiche
+dans le terminal, ses sorties vont dans `sorties/mail-<UID>/`. Aucun mail n'est envoyé. Ctrl+C
+arrête la relève.

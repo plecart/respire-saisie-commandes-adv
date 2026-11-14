@@ -11,6 +11,7 @@ dependencies = [
 
 [project.scripts]
 saisie-commandes = "saisie_commandes.cli:main"
+saisie-commandes-releve = "saisie_commandes.releve:main"
 
 [build-system]
 requires = ["uv_build>=0.12.5,<0.13.0"]
@@ -28,7 +29,8 @@ addopts = ["--cov"]
 
 [tool.coverage.run]
 # Mesurée sur les seuls référentiels et règles métier, lecture des valeurs imprimées comprise
-# (PRD #1, « Décisions de test »).
+# (PRD #1, « Décisions de test »). La relève IMAP, `saisie_commandes.releve`, reste hors de cette
+# liste : elle n'est pas testée automatiquement (issue #7, « Décisions »).
 source = ["saisie_commandes.referentiels", "saisie_commandes.regles", "saisie_commandes.valeurs"]
 
 [tool.coverage.report]
