@@ -1,4 +1,4 @@
-"""Tests des sorties d'un lot, par les fichiers écrits et le résumé rendu."""
+"""Tests des sorties d'un lot, par les fichiers écrits, le tableau et l'affichage terminal."""
 
 import json
 import re
@@ -10,7 +10,7 @@ from decimal import Decimal
 import pytest
 
 from saisie_commandes.resultat import Anomaly, DocumentResult, Order, OrderLine, Summary
-from saisie_commandes.sorties import summary_table, write_outputs
+from saisie_commandes.sorties import summary_table, terminal_view, write_outputs
 
 ENONCE = {
     "partner_id": 10103,
@@ -148,6 +148,71 @@ def test_une_relance_dans_le_meme_dossier_ecrit_ce_qu_ecrirait_un_dossier_neuf(
     assert written_files(tmp_path / "relance") == written_files(tmp_path / "neuf")
 
 
+COMMANDE_3_JSON = """\
+{
+  "partner_id": 10103,
+  "client_order_ref": "208532",
+  "commitment_date": "2026-01-13",
+  "order_line": [
+    {
+      "product_ref": "DSTPFC50",
+      "product_uom_qty": 12,
+      "price_unit": 10.75,
+      "discount": 35.0
+    }
+  ]
+}"""
+"""JSON de la commande de Commande_3, sans fin de ligne finale."""
+
+
+ZERO_REFERENCE = Anomaly("numéro de commande à « 0 »", blocking=False)
+"""L'avertissement de Commande_1."""
+
+
+def test_le_terminal_affiche_d_un_document_accepte_son_nom_puis_le_json_de_sa_commande():
+    assert terminal_view({"Commande_3": COMMANDE_3}) == f"Commande_3\n{COMMANDE_3_JSON}"
+
+
+def test_le_terminal_affiche_un_avertissement_entre_le_nom_et_le_json():
+    warned = replace(COMMANDE_3, anomalies=(ZERO_REFERENCE,))
+    assert terminal_view({"Commande_1": warned}) == (
+        f"Commande_1\navertissement : numéro de commande à « 0 »\n{COMMANDE_3_JSON}"
+    )
+
+
+def test_le_terminal_affiche_d_un_document_bloque_chaque_anomalie_selon_sa_gravite_sans_json():
+    blocked = DocumentResult(
+        (
+            ZERO_REFERENCE,
+            Anomaly("quantité en colis : « COL6 »", blocking=True, line=4, ean="3760368742383"),
+        )
+    )
+    assert terminal_view({"Commande_5": blocked}) == (
+        "Commande_5\n"
+        "avertissement : numéro de commande à « 0 »\n"
+        "erreur : quantité en colis : « COL6 » (ligne 4, EAN 3760368742383)"
+    )
+
+
+def test_le_terminal_separe_deux_documents_d_une_ligne_vide_dans_l_ordre_du_lot():
+    assert terminal_view({"Document_4": DOCUMENT_4, "Commande_5": COMMANDE_5}) == (
+        "Document_4\n"
+        "erreur : n'est pas un bon de commande\n"
+        "\n"
+        "Commande_5\n"
+        "erreur : EAN absent (ligne 3)\n"
+        "erreur : quantité en colis : « COL6 » (ligne 4, EAN 3760368742383)"
+    )
+
+
+def test_le_json_affiche_au_terminal_est_le_contenu_du_fichier_ecrit_accents_compris(tmp_path):
+    order = replace(COMMANDE_3.order, client_order_ref="n° 4")
+    results = {"Commande": DocumentResult((), order=order)}
+    write_outputs(results, tmp_path)
+    shown = f"{terminal_view(results)}\n".encode()
+    assert shown == b"Commande\n" + (tmp_path / "Commande.json").read_bytes()
+
+
 def test_une_barre_verticale_imprimee_ne_decale_pas_les_colonnes_du_tableau():
     result = DocumentResult((), Summary(client_order_ref="12|34"))
     last_row = summary_table({"A|B": result}).splitlines()[-1]
@@ -196,3 +261,19 @@ def test_le_texte_lu_sur_un_document_tient_sur_sa_ligne_du_rapport_et_du_tableau
     table = summary_table({name: result}).splitlines()
     report = (tmp_path / "rapport.md").read_text(encoding="utf-8").splitlines()
     assert (len(table), [len(cells(row)) for row in table], len(report)) == (3, [7, 7, 7], 7)
+
+
+@pytest.mark.parametrize(
+    ("name", "result"),
+    [
+        pytest.param(HOSTILE, DocumentResult((ANOMALY,)), id="nom-du-document"),
+        pytest.param("A", DocumentResult((replace(ANOMALY, message=HOSTILE),)), id="message"),
+        pytest.param("A", DocumentResult((replace(ANOMALY, ean=HOSTILE),)), id="ean"),
+    ],
+)
+def test_le_texte_lu_sur_un_document_tient_sur_sa_ligne_du_terminal(name, result):
+    """Nom du document, message et EAN d'une anomalie : le nom, puis l'anomalie, en 2 lignes.
+
+    Rien n'est écrit sur le disque : le nom du document s'éprouve aussi sous Windows.
+    """
+    assert len(terminal_view({name: result}).splitlines()) == 2

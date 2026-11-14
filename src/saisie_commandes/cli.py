@@ -2,8 +2,9 @@
 
 `saisie-commandes <dossier d'entrée> <dossier de sortie>` enchaîne réception, extraction, règles
 métier et sorties (PRD #1, « Modules ») : le dossier de sortie reçoit un JSON par commande
-produite et le rapport `rapport.md`, le terminal le tableau récapitulatif du lot. Les
-référentiels se lisent dans `referentiels/`, sous le dossier courant.
+produite et le rapport `rapport.md` ; le terminal affiche, pour chaque document, ses erreurs et
+avertissements, puis le JSON de sa commande (`sorties.terminal_view`). Les référentiels se
+lisent dans `referentiels/`, sous le dossier courant.
 
 Un mail se traite comme le seul PDF parmi ses pièces jointes, les autres ignorées, écrit le temps
 de son extraction dans un dossier temporaire ; un mail sans PDF joint, ou à plusieurs PDF joints,
@@ -35,7 +36,7 @@ from saisie_commandes.reception import (
 from saisie_commandes.referentiels import ReferenceData
 from saisie_commandes.regles import apply_rules
 from saisie_commandes.resultat import Anomaly, DocumentResult
-from saisie_commandes.sorties import Results, summary_table, write_outputs
+from saisie_commandes.sorties import Results, terminal_view, write_outputs
 from saisie_commandes.valeurs import on_one_line
 
 type Extractor = Callable[[Path], RawFields]
@@ -125,7 +126,7 @@ def main(argv: Sequence[str] | None = None, extract: Extractor | None = None) ->
         return _refuse(f"plusieurs documents portent le nom {names}")
     references = ReferenceData.load(REFERENCES)
     results = process_documents(documents, args.sortie, extract, references)
-    print(summary_table(results))
+    print(terminal_view(results))
     return 0
 
 
