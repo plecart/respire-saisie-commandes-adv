@@ -1,4 +1,5 @@
-# CI du projet : lint, vérification du format et tests, sur Linux.
+# CI du projet : lint, vérification du format et tests sur Linux ; lancement par `lancer.sh` sur
+# macOS, comme l'évaluateur.
 #
 # Les étapes lancent les commandes du projet. Chaque `uses:` est épinglé par l'empreinte de commit
 # de la dernière version publiée de l'action, suivie de son étiquette la plus précise : une
@@ -114,3 +115,45 @@ jobs:
 
       - name: Tests
         run: uv run pytest
+
+  # Le lancement de l'évaluateur sur un Mac sans uv — l'image `macos-latest`, macOS 26 arm64, n'en
+  # porte pas (liste des outils de l'image lue le 2026-11-14) : sans `setup-uv`, le script trouve
+  # ou installe uv seul.
+  macos:
+    name: Lancement macOS
+    runs-on: macos-latest
+    timeout-minutes: 10
+    if: github.event_name != 'pull_request' || github.event.pull_request.draft == false
+
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          fetch-depth: 0
+
+      - *fusion
+
+      # Sans `.env` ni terminal, rien ne peut être saisi : arrêt non nul, sans téléchargement, sur
+      # un message qui nomme `.env` et la clé d'API.
+      - name: Arrêt sans .env
+        run: |
+          if sh lancer.sh < /dev/null 2> "$RUNNER_TEMP/erreur.txt"; then
+            echo "::error::lancer.sh est sorti en 0 sans .env."
+            exit 1
+          fi
+          cat "$RUNNER_TEMP/erreur.txt"
+          grep -qF .env "$RUNNER_TEMP/erreur.txt"
+          grep -qF ANTHROPIC_API_KEY "$RUNNER_TEMP/erreur.txt"
+
+      # Clé factice : uv s'installe, le lot tourne, Claude refuse chaque lecture sans rien facturer,
+      # chaque document finit bloqué et le programme rend 0. Le rapport du dépôt ne porte aucun
+      # refus : le trouver dans `sorties/rapport.md` prouve que ce lancement l'a réécrit.
+      - name: Lot complet avec une clé factice
+        run: |
+          echo ANTHROPIC_API_KEY=sk-ant-factice > .env
+          sh lancer.sh
+          grep -F "clé d'API refusée par Claude" sorties/rapport.md
+          if grep -F -e '| accepté |' -e '| avertissement |' sorties/rapport.md; then
+            echo "::error::Un document n'est pas bloqué malgré la clé factice."
+            exit 1
+          fi
