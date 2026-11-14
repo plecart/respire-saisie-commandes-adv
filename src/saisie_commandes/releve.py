@@ -6,7 +6,8 @@ avec l'adresse et le mot de passe d'application de l'environnement (`GMAIL_ADDRE
 lu y est téléchargé en entier, ce qui le marque lu dans Gmail (RFC 3501, § 6.4.5) : le drapeau
 « lu » tient lieu de mémoire des mails traités, redémarrage compris. Le mail se traite comme un
 lot d'un document par la chaîne du dossier (`cli.process_documents`) : ses sorties s'écrivent
-dans `<dossier de sortie>/mail-<UID>/`, son tableau récapitulatif s'affiche dans le terminal.
+dans `<dossier de sortie>/mail-<UID>/` ; le terminal affiche, après une ligne vide, son nom,
+ses erreurs et avertissements, puis le JSON de sa commande (`sorties.terminal_view`).
 
 Sans variable de la boîte ou sans clé d'API, la commande s'arrête sur un message, sans se
 connecter ; une connexion impossible au démarrage l'arrête de même, et une authentification
@@ -37,7 +38,7 @@ from typing import NoReturn
 from saisie_commandes.cli import REFERENCES, Extractor, describe_error, process_documents
 from saisie_commandes.extraction import MissingApiKey, extractor_from_environment
 from saisie_commandes.referentiels import ReferenceData
-from saisie_commandes.sorties import summary_table
+from saisie_commandes.sorties import terminal_view
 
 _PROG = "saisie-commandes-releve"
 
@@ -266,17 +267,18 @@ def _ok(response: tuple[str, list]) -> list:
 def _process_mail(
     uid: str, raw: bytes, *, output_dir: Path, extract: Extractor, references: ReferenceData
 ) -> None:
-    """Traite un mail comme un lot d'un document, `mail-<uid>.eml`, et affiche son tableau.
+    """Traite un mail comme un lot d'un document, `mail-<uid>.eml`, et l'affiche au terminal.
 
     Le mail s'écrit le temps du traitement dans un dossier temporaire ; ses sorties, JSON de la
     commande s'il y en a une et `rapport.md`, dans `<output_dir>/mail-<uid>/`, propre à ce mail.
+    Une ligne vide le sépare de ce qui précède au terminal, comme deux documents d'un lot.
     """
     name = _mail_name(uid)
     with tempfile.TemporaryDirectory(ignore_cleanup_errors=True) as directory:
         mail = Path(directory, f"{name}.eml")
         mail.write_bytes(raw)
         results = process_documents([mail], output_dir / name, extract, references)
-    print(summary_table(results), flush=True)
+    print(f"\n{terminal_view(results)}", flush=True)
 
 
 def _mail_name(uid: str) -> str:

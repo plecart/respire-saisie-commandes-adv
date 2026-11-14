@@ -1,12 +1,14 @@
-"""Sorties d'un lot : un JSON par commande produite, le rapport d'anomalies, son résumé.
+"""Sorties d'un lot : un JSON par commande produite, le rapport d'anomalies, l'affichage terminal.
 
 Le JSON d'une commande a exactement la forme de l'énoncé (PRD #1, « Commande produite ») :
 quantité entière, prix et remise décimaux, remise en pourcentage (`35.0`, `0.0` sans remise) ;
 une référence ou une date qui n'a pas pu être lue y est une chaîne vide. Le rapport `rapport.md`
 s'ouvre sur le tableau récapitulatif du lot (`summary_table`), puis liste les anomalies de chaque
-document qui en a, en français, situées par leur ligne et leur EAN. L'un et l'autre citent du
-texte non fiable, lu sur un document ou tiré de son nom de fichier : chaque cellule, chaque
-titre et chaque anomalie y tient sur sa ligne (`on_one_line`).
+document qui en a, en français, situées par leur ligne et leur EAN. Le terminal affiche chaque
+document (`terminal_view`) : son nom, ses anomalies dites erreur ou avertissement et situées
+comme au rapport, puis le JSON de sa commande, celui de son fichier. Rapport et terminal citent
+du texte non fiable, lu sur un document ou tiré de son nom de fichier : chaque cellule, chaque
+nom de document et chaque anomalie y tient sur sa ligne (`on_one_line`).
 
 Les fichiers s'écrivent en UTF-8, fins de ligne Unix (LF), quel que soit le système.
 """
@@ -42,7 +44,7 @@ def write_outputs(results: Results, directory: Path) -> None:
         if result.order is None:
             path.unlink(missing_ok=True)
         else:
-            _write(path, json.dumps(_order_json(result.order), ensure_ascii=False, indent=2))
+            _write(path, _order_text(result.order))
     _write(directory / _REPORT, _report(results))
 
 
@@ -55,6 +57,21 @@ def summary_table(results: Results) -> str:
     rows = [_COLUMNS, ("---",) * len(_COLUMNS)]
     rows += [_summary_row(name, result) for name, result in results.items()]
     return "\n".join(f"| {' | '.join(map(_escape, row))} |" for row in rows)
+
+
+def terminal_view(results: Results) -> str:
+    """Affichage du lot au terminal, sans fin de ligne finale ; une ligne vide entre deux documents.
+
+    Pour chaque document, dans l'ordre du lot : son nom ; chaque anomalie sur sa ligne, préfixée
+    « erreur : » si elle bloque, « avertissement : » sinon, et située comme au rapport ; puis le
+    JSON de sa commande s'il en a une, identique à son fichier.
+    """
+    return "\n\n".join(_document_view(name, result) for name, result in results.items())
+
+
+def _order_text(order: Order) -> str:
+    """Texte JSON d'une commande, indenté, ses accents gardés, sans fin de ligne finale."""
+    return json.dumps(_order_json(order), ensure_ascii=False, indent=2)
 
 
 def _order_json(order: Order) -> dict[str, object]:
@@ -115,16 +132,31 @@ def _report(results: Results) -> str:
 
 def _anomalies_section(name: str, anomalies: Iterable[Anomaly]) -> str:
     """Section du rapport d'un document : son nom en titre, puis ses anomalies en liste."""
-    items = "\n".join(f"- {on_one_line(_describe(anomaly))}" for anomaly in anomalies)
+    items = "\n".join(f"- {_describe(anomaly)}" for anomaly in anomalies)
     return f"## {on_one_line(name)}\n\n{items}"
 
 
+def _document_view(name: str, result: DocumentResult) -> str:
+    """Affichage d'un document au terminal : son nom, ses anomalies, puis sa commande en JSON."""
+    lines = [on_one_line(name)]
+    lines += [f"{_severity(anomaly)} : {_describe(anomaly)}" for anomaly in result.anomalies]
+    if result.order is not None:
+        lines.append(_order_text(result.order))
+    return "\n".join(lines)
+
+
+def _severity(anomaly: Anomaly) -> str:
+    """Gravité d'une anomalie au terminal : « erreur » si elle bloque, « avertissement » sinon."""
+    return "erreur" if anomaly.blocking else "avertissement"
+
+
 def _describe(anomaly: Anomaly) -> str:
-    """Anomalie en clair, suivie de sa ligne et de son EAN quand elle en porte."""
+    """Anomalie en clair sur une ligne, suivie de sa ligne et de son EAN quand elle en porte."""
     place = [f"ligne {anomaly.line}"] if anomaly.line is not None else []
     if anomaly.ean is not None:
         place.append(f"EAN {anomaly.ean}")
-    return f"{anomaly.message} ({', '.join(place)})" if place else anomaly.message
+    text = f"{anomaly.message} ({', '.join(place)})" if place else anomaly.message
+    return on_one_line(text)
 
 
 def _write(path: Path, text: str) -> None:

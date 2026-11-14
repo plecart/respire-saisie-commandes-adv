@@ -70,7 +70,7 @@ Calcul : quantité × prix catalogue × (1 − remise) = total de ligne, et somm
 ### 7. Entrées et sorties
 
 - Entrée : un dossier de documents (PDF, ou fichiers `.eml` pour simuler l'arrivée d'un mail).
-- Sortie : un fichier JSON par commande produite, un rapport d'anomalies pour l'ensemble du lot, et un résumé dans le terminal.
+- Sortie : un fichier JSON par commande produite et un rapport d'anomalies pour l'ensemble du lot ; le terminal affiche, pour chaque document, ses erreurs et avertissements, puis le JSON de sa commande.
 
 ### 8. Envoi à Odoo isolé
 

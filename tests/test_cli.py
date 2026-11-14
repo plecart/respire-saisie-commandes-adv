@@ -99,7 +99,7 @@ def test_un_mail_bloque_figure_au_rapport_et_au_terminal_sans_appeler_l_extracte
     report = (output / "rapport.md").read_text(encoding="utf-8")
     assert (code, capsys.readouterr().out, report, [path.name for path in output.iterdir()]) == (
         0,
-        f"{table}\n",
+        "Mail\nerreur : aucun PDF en pièce jointe\n",
         f"{table}\n\n## Mail\n\n- aucun PDF en pièce jointe\n",
         ["rapport.md"],
     )
@@ -167,10 +167,11 @@ def test_un_document_dont_la_lecture_echoue_est_bloque_sans_arreter_le_lot(
         "| Illisible | bloqué | — | — | — | — | — |"
     )
     report = (output / "rapport.md").read_text(encoding="utf-8")
+    order_json = (output / "Commande_3.json").read_text(encoding="utf-8")
     written = sorted(path.name for path in output.iterdir())
     assert (code, capsys.readouterr().out, report, written) == (
         0,
-        f"{table}\n",
+        f"Commande_3\n{order_json}\nIllisible\nerreur : lecture impossible : réponse tronquée\n",
         f"{table}\n\n## Illisible\n\n- lecture impossible : réponse tronquée\n",
         ["Commande_3.json", "rapport.md"],
     )

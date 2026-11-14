@@ -87,9 +87,39 @@ def test_le_rapport_s_ouvre_sur_le_tableau_recapitulatif_attendu(lot):
     assert table(report(output).split("\n\n")[0]) == TABLE
 
 
-def test_le_terminal_affiche_le_tableau_recapitulatif_sans_le_detail(lot):
+TERMINAL = {
+    "Commande_1": ["avertissement : numéro de commande à « 0 »"],
+    "Commande_2": ["avertissement : code postal du document (59800) différent de la fiche (62000)"],
+    "Commande_3": [],
+    "Commande_5": [
+        "erreur : EAN absent (ligne 3)",
+        "erreur : quantité en colis : « COL6 » (ligne 4, EAN 3760368742383)",
+        "erreur : EAN inconnu du référentiel (ligne 5, EAN 3760368799912)",
+    ],
+    "Document_4": ["erreur : n'est pas un bon de commande"],
+    "Mail_sans_piece_jointe": ["erreur : aucun PDF en pièce jointe"],
+    "Mail_valide": [],
+}
+"""Erreurs et avertissements attendus au terminal, documents dans l'ordre de leurs noms."""
+
+
+def written_json(output: Path, document: str) -> list[str]:
+    """JSON écrit pour un document, sans sa fin de ligne finale ; aucun s'il n'en a pas."""
+    path = output / f"{document}.json"
+    return [path.read_text(encoding="utf-8").removesuffix("\n")] if path.exists() else []
+
+
+def test_le_terminal_affiche_chaque_document_ses_anomalies_puis_le_json_ecrit(lot):
+    """Un bloc par document, dans l'ordre du lot, séparés d'une ligne vide.
+
+    Son nom, ses erreurs et avertissements, puis le JSON de sa commande tel qu'écrit ; un document
+    bloqué n'a pas de JSON.
+    """
     output, terminal = lot
-    assert (table(terminal), terminal) == (TABLE, report(output).split("\n\n")[0] + "\n")
+    documents = [
+        "\n".join([name, *lines, *written_json(output, name)]) for name, lines in TERMINAL.items()
+    ]
+    assert terminal == "\n\n".join(documents) + "\n"
 
 
 @pytest.mark.parametrize(
