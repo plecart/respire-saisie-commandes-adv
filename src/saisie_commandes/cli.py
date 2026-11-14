@@ -41,7 +41,8 @@ from saisie_commandes.valeurs import on_one_line
 type Extractor = Callable[[Path], RawFields]
 """Lit les champs bruts d'un document, désigné par son chemin."""
 
-_REFERENCES = Path("referentiels")
+REFERENCES = Path("referentiels")
+"""Dossier des référentiels, relatif au dossier courant."""
 
 
 def process_documents(
@@ -117,7 +118,7 @@ def main(argv: Sequence[str] | None = None, extract: Extractor | None = None) ->
     if shared := shared_names(documents):
         names = ", ".join(f"« {on_one_line(name)} »" for name in shared)
         return _refuse(f"plusieurs documents portent le nom {names}")
-    references = ReferenceData.load(_REFERENCES)
+    references = ReferenceData.load(REFERENCES)
     results = process_documents(documents, args.sortie, extract, references)
     print(summary_table(results))
     return 0
