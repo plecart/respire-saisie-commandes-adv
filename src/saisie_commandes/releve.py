@@ -34,7 +34,7 @@ from functools import partial
 from pathlib import Path
 from typing import NoReturn
 
-from saisie_commandes.cli import REFERENCES, Extractor, process_documents
+from saisie_commandes.cli import REFERENCES, Extractor, describe_error, process_documents
 from saisie_commandes.extraction import MissingApiKey, extractor_from_environment
 from saisie_commandes.referentiels import ReferenceData
 from saisie_commandes.sorties import summary_table
@@ -55,6 +55,12 @@ _PASSWORD_VARIABLE = "GMAIL_APP_PASSWORD"
 
 _IMAP_ERRORS = (imaplib.IMAP4.error, OSError)
 """Échecs d'un échange IMAP : refus ou réponse inattendue du serveur, réseau, SSL, délai."""
+
+_AUTHENTICATION_FAILED = "AUTHENTICATIONFAILED"
+"""Code de réponse d'un refus d'identifiants (RFC 5530) ; un autre refus de LOGIN se reprend."""
+
+_REPROCESS = " ; déjà marqué lu dans Gmail, le remettre non lu pour le retraiter"
+"""Suite du message qui nomme un mail téléchargé mais pas traité jusqu'au bout."""
 
 _NOT_STARTED = "relève non démarrée"
 _STOPPED = "relève arrêtée"
@@ -144,12 +150,14 @@ def _connect(address: str, password: str) -> imaplib.IMAP4:
     dont l'authentification échoue est fermée.
 
     `IMAP4.login` (Python 3.12) lève `IMAP4.error` sur une réponse NO ou BAD à LOGIN, et sa
-    sous-classe `IMAP4.abort` sur une coupure ou un BYE du serveur. Seule la première compte pour
-    un refus ; une réponse hors norme, ligne de plus de `imaplib._MAXLINE` octets, la lève aussi.
+    sous-classe `IMAP4.abort` sur une coupure ou un BYE du serveur. Seule une `IMAP4.error` dont
+    le texte porte le code `AUTHENTICATIONFAILED` (RFC 5530) compte pour un refus : un NO passager
+    (serveur indisponible, trop de connexions) reste une erreur IMAP, reprise au cycle suivant.
 
     Raises:
-        LoginRefused: le serveur refuse l'authentification.
-        imaplib.IMAP4.error: réponse inattendue du serveur, ou connexion coupée (`IMAP4.abort`).
+        LoginRefused: le serveur refuse les identifiants.
+        imaplib.IMAP4.error: réponse inattendue du serveur, refus passager de LOGIN, ou connexion
+            coupée (`IMAP4.abort`).
         OSError: erreur réseau, certificat refusé ou délai dépassé.
     """
     imap = imaplib.IMAP4_SSL(
@@ -159,7 +167,7 @@ def _connect(address: str, password: str) -> imaplib.IMAP4:
         imap.login(address, password)
     except _IMAP_ERRORS as error:
         _abandon(imap)
-        if type(error) is imaplib.IMAP4.error:
+        if type(error) is imaplib.IMAP4.error and _AUTHENTICATION_FAILED in str(error):
             raise LoginRefused(
                 f"authentification refusée par la boîte {address} : {error}"
             ) from error
@@ -210,6 +218,8 @@ def _check_inbox(imap: imaplib.IMAP4, process: Callable[[str, bytes], None]) -> 
         OSError: erreur réseau ou délai dépassé.
         MailNotProcessed: `process` a levé, quelle que soit l'erreur, `OSError` comprise : le
             mail est déjà marqué lu, une reprise le perdrait.
+        KeyboardInterrupt: Ctrl+C pendant `process` ; le mail interrompu est d'abord nommé sur
+            la sortie d'erreur, puisqu'il est lui aussi déjà marqué lu.
     """
     _ok(imap.select("INBOX"))
     uids = b" ".join(filter(None, _ok(imap.uid("SEARCH", None, "UNSEEN")))).split()
@@ -219,11 +229,12 @@ def _check_inbox(imap: imaplib.IMAP4, process: Callable[[str, bytes], None]) -> 
         raw = _fetch(imap, uid)
         try:
             process(uid, raw)
+        except KeyboardInterrupt:
+            print(f"{_PROG} : {_mail_name(uid)} interrompu{_REPROCESS}.", file=sys.stderr)
+            raise
         except Exception as error:
-            reason = str(error) or type(error).__name__
             raise MailNotProcessed(
-                f"{_mail_name(uid)} non traité ({reason}) ; déjà marqué lu dans Gmail, "
-                "le remettre non lu pour le retraiter"
+                f"{_mail_name(uid)} non traité ({describe_error(error)}){_REPROCESS}"
             ) from error
 
 
