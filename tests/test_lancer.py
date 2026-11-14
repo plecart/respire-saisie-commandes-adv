@@ -32,8 +32,20 @@ ROOT = Path(__file__).parents[1]
 
 INSTALLER_URL = "https://astral.sh/uv/install.sh"
 
-INSTALLED_UV = Path("home", ".local", "bin", "uv")
-"""uv installé dans le dossier de l'utilisateur, relatif à `tmp_path`."""
+REPO = Path("depot")
+"""Dépôt où le script est copié ; ce chemin et les suivants sont relatifs à `tmp_path`."""
+
+SCRIPT = REPO / "lancer.sh"
+
+ENV_FILE = REPO / ".env"
+
+FAKES = Path("bin")
+"""Dossier des faux `uv` et `curl`, en tête du PATH."""
+
+HOME = Path("home")
+
+INSTALLED_UV = HOME / ".local" / "bin" / "uv"
+"""uv installé dans le dossier de l'utilisateur."""
 
 TOOLS = ("sh", "env", "dirname", "stty", "cat", "mkdir", "chmod")
 """Utilitaires externes qu'appellent le script, le faux installeur et `sh` lui-même."""
@@ -62,6 +74,11 @@ INSTALLER
 L'installeur rendu se comporte comme l'officiel sur ce que le script en attend : il installe
 dans `UV_INSTALL_DIR`, et consigne `UV_NO_MODIFY_PATH`, qui laisse les profils du shell intacts.
 """
+
+OFFLINE_CURL = """#!/bin/sh
+exit 6
+"""
+"""Faux `curl` sans connexion : sort en 6 (hôte introuvable) sans rien rendre."""
 
 RUN = ["run", "--locked", "--env-file", ".env", "saisie-commandes"]
 """Arguments que reçoit uv, avant les dossiers d'entrée et de sortie."""
@@ -106,15 +123,14 @@ def script_env(tmp_path, system_path):
 
     Les variables d'uv du poste, `UV_NO_MODIFY_PATH` comprise, ne passent pas au script.
     """
-    repo = tmp_path / "depot"
-    repo.mkdir()
-    shutil.copy(ROOT / "lancer.sh", repo)
-    (repo / ".env").write_text("ANTHROPIC_API_KEY=sk-ant-factice\n")
-    (tmp_path / "home").mkdir()
-    fakes = tmp_path / "bin"
+    (tmp_path / REPO).mkdir()
+    shutil.copy(ROOT / SCRIPT.name, tmp_path / SCRIPT)
+    (tmp_path / ENV_FILE).write_text("ANTHROPIC_API_KEY=sk-ant-factice\n")
+    (tmp_path / HOME).mkdir()
+    fakes = tmp_path / FAKES
     _write_executable(fakes / "curl", FAKE_CURL)
     env = {name: value for name, value in os.environ.items() if not name.startswith("UV_")}
-    env |= {"HOME": str(tmp_path / "home"), "PATH": os.pathsep.join([str(fakes), system_path])}
+    env |= {"HOME": str(tmp_path / HOME), "PATH": os.pathsep.join([str(fakes), system_path])}
     return env
 
 
@@ -127,9 +143,9 @@ def launch(tmp_path, script_env):
 
     def run(*args: str, uv_on_path: bool = True) -> subprocess.CompletedProcess[str]:
         if uv_on_path:
-            _write_executable(tmp_path / "bin" / "uv", FAKE_UV)
+            _write_executable(tmp_path / FAKES / "uv", FAKE_UV)
         return subprocess.run(
-            [SH, "depot/lancer.sh", *args],
+            [SH, SCRIPT.as_posix(), *args],
             check=False,
             cwd=tmp_path,
             env=script_env,
@@ -157,14 +173,14 @@ def type_key(tmp_path, script_env):
     La fonction rendue tape `keys` à l'invite de la clé, attend la fin du script et rend ce
     qu'en voit le terminal.
     """
-    (tmp_path / "depot" / ".env").unlink()
-    _write_executable(tmp_path / "bin" / "uv", FAKE_UV)
+    (tmp_path / ENV_FILE).unlink()
+    _write_executable(tmp_path / FAKES / "uv", FAKE_UV)
 
     def run(keys: bytes) -> Terminal:
         pid, master = pty.fork()
         if pid == 0:  # Le script, dont le pseudo-terminal est le terminal de contrôle.
             try:
-                os.execve(SH, [SH, str(tmp_path / "depot" / "lancer.sh")], script_env)
+                os.execve(SH, [SH, str(tmp_path / SCRIPT)], script_env)
             finally:
                 os._exit(127)  # Jamais de retour dans pytest.
         try:
@@ -206,7 +222,7 @@ def _write_executable(path: Path, text: str) -> None:
 
 def _logged(tmp_path: Path, fake: str) -> list[str] | None:
     """Lignes consignées par le faux `fake` — `uv`, `curl` ou `installer` —, None sans journal."""
-    log = tmp_path / "home" / f"{fake}.log"
+    log = tmp_path / HOME / f"{fake}.log"
     return log.read_text(encoding="utf-8").splitlines() if log.exists() else None
 
 
@@ -215,13 +231,13 @@ def test_sans_env_ni_terminal_le_script_s_arrete_sur_un_message_sans_rien_lancer
 
     Sans uv sur le PATH : un téléchargement qui précéderait l'arrêt appellerait curl.
     """
-    (tmp_path / "depot" / ".env").unlink()
+    (tmp_path / ENV_FILE).unlink()
     result = launch(uv_on_path=False)
     assert (
         result.returncode != 0,
         ".env" in result.stderr,
         "ANTHROPIC_API_KEY" in result.stderr,
-        (tmp_path / "depot" / ".env").exists(),
+        (tmp_path / ENV_FILE).exists(),
         _logged(tmp_path, "uv"),
         _logged(tmp_path, "curl"),
     ) == (True, True, True, False, None, None), result.stderr
@@ -267,11 +283,19 @@ def test_un_uv_deja_installe_dans_le_dossier_de_l_utilisateur_ne_se_reinstalle_p
     assert (_logged(tmp_path, "curl"), _logged(tmp_path, "uv")) == (None, DEFAULT_RUN)
 
 
+def test_sans_connexion_l_installation_d_uv_echoue_sur_un_message_qui_la_nomme(launch, tmp_path):
+    _write_executable(tmp_path / FAKES / "curl", OFFLINE_CURL)
+    result = launch(uv_on_path=False)
+    assert (result.returncode, "l'installation d'uv a échoué" in result.stderr) == (1, True), (
+        result.stderr
+    )
+
+
 @needs_pty
 def test_la_cle_saisie_est_ecrite_dans_env_lisible_par_l_utilisateur_seul(type_key, tmp_path):
     """Le fichier est en mode 0600, puis le programme est lancé."""
     type_key(KEY_LINE)
-    env_file = tmp_path / "depot" / ".env"
+    env_file = tmp_path / ENV_FILE
     assert (
         env_file.read_text(encoding="utf-8"),
         env_file.stat().st_mode & 0o777,
@@ -299,6 +323,6 @@ def test_sans_cle_saisie_le_script_s_arrete_sans_ecrire_env_ni_rien_lancer(
     result = type_key(keys)
     assert (
         result.returncode != 0,
-        (tmp_path / "depot" / ".env").exists(),
+        (tmp_path / ENV_FILE).exists(),
         _logged(tmp_path, "uv"),
     ) == (True, False, None), result.output
