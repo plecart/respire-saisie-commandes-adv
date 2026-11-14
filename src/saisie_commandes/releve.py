@@ -49,7 +49,7 @@ _TIMEOUT_SECONDS = 30
 _ADDRESS_VARIABLE = "GMAIL_ADDRESS"
 _PASSWORD_VARIABLE = "GMAIL_APP_PASSWORD"
 
-_NETWORK_ERRORS = (imaplib.IMAP4.error, OSError)
+_IMAP_ERRORS = (imaplib.IMAP4.error, OSError)
 """Échecs d'un échange IMAP : refus ou réponse inattendue du serveur, réseau, SSL, délai."""
 
 
@@ -81,7 +81,7 @@ def main(argv: Sequence[str] | None = None) -> int:
     connect = partial(_connect, address, password)
     try:
         imap = connect()
-    except _NETWORK_ERRORS as error:
+    except _IMAP_ERRORS as error:
         return _refuse(f"connexion à la boîte {address} impossible : {error}")
     print(
         f"Relève de la boîte {address} : un bon de commande envoyé en PDF joint à cette adresse "
@@ -125,7 +125,7 @@ def _connect(address: str, password: str) -> imaplib.IMAP4:
     )
     try:
         imap.login(address, password)
-    except _NETWORK_ERRORS:
+    except _IMAP_ERRORS:
         _abandon(imap)
         raise
     return imap
@@ -139,16 +139,17 @@ def _watch(
     """Relève la boîte toutes les `_POLL_SECONDS` secondes, sans fin, à partir de `imap`.
 
     `process` reçoit l'UID et les octets de chaque mail non lu. Une erreur réseau ou IMAP d'un
-    cycle s'écrit sur la sortie d'erreur ; la connexion est abandonnée, et `connect` en ouvre une
-    autre au cycle suivant. Une interruption (Ctrl+C, `KeyboardInterrupt`) déconnecte au mieux,
-    puis remonte : c'est la seule sortie.
+    cycle (`_IMAP_ERRORS`, où tombe aussi une `OSError` levée par `process`) s'écrit sur la sortie
+    d'erreur ; la connexion est abandonnée, et `connect` en ouvre une autre au cycle suivant. Toute
+    autre exception, dont l'interruption par Ctrl+C (`KeyboardInterrupt`), déconnecte au mieux,
+    puis remonte : c'est la seule sortie de la boucle.
     """
     try:
         while True:
             try:
                 imap = imap or connect()
                 _check_inbox(imap, process)
-            except _NETWORK_ERRORS as error:
+            except _IMAP_ERRORS as error:
                 print(
                     f"{_PROG} : relève interrompue ({error}), reprise dans {_POLL_SECONDS} s.",
                     file=sys.stderr,
@@ -232,7 +233,7 @@ def _abandon(imap: imaplib.IMAP4 | None) -> None:
 def _logout(imap: imaplib.IMAP4 | None) -> None:
     """Déconnecte au mieux : une erreur de déconnexion reste sans suite, la relève s'arrête."""
     if imap is not None:
-        with contextlib.suppress(*_NETWORK_ERRORS):
+        with contextlib.suppress(*_IMAP_ERRORS):
             imap.logout()
 
 
