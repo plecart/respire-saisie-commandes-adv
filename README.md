@@ -5,18 +5,31 @@ de vente Odoo, une par fichier JSON, avec le rapport d'anomalies du lot.
 
 ## Lancement
 
-1. Copier `.env.example` en `.env` et y renseigner `ANTHROPIC_API_KEY`. Le fichier `.env` n'est
-   jamais versionné.
-2. Lancer `docker compose up` (Docker Compose 2.24 ou plus) : le dossier `exemples/` est
-   traité, et `sorties/` reçoit un JSON par commande produite et le rapport `rapport.md` ; le
-   terminal affiche, pour chaque document, ses erreurs et avertissements, puis le JSON de sa
-   commande. Après une modification du code :
-   `docker compose up --build`.
+Le programme fait lire chaque document par Claude : il lui faut une clé d'API Anthropic. Elle se
+crée dans la Claude Console, **rattachée à un workspace** : sans workspace, l'API refuse les
+appels (erreur 400 qui réclame `anthropic-workspace-id`). Sans clé, en demander une de test au
+mainteneur ; elle ne s'écrit que dans le fichier `.env` local, jamais versionné.
 
-Sans Docker, avec [uv](https://docs.astral.sh/uv/), depuis la racine du dépôt :
+Sur un Mac, sans rien installer au préalable, depuis la racine du dépôt :
 
 ```sh
-uv run --env-file .env saisie-commandes exemples sorties
+sh lancer.sh
+```
+
+Au premier lancement, le script demande la clé, saisie masquée, et l'écrit dans `.env` ; il
+installe [uv](https://docs.astral.sh/uv/) dans `~/.local/bin` s'il manque, sans droits
+administrateur ni modification des fichiers de configuration du shell ; uv fournit à son tour
+Python 3.12, qu'il télécharge s'il manque, et les dépendances figées par `uv.lock`. Le dossier `exemples/` est alors traité :
+`sorties/` reçoit un JSON par commande produite et le rapport d'anomalies `rapport.md`, et le
+terminal affiche, pour chaque document, ses erreurs et avertissements, puis le JSON de sa
+commande. Relancé, le script ne redemande ni ne réinstalle rien.
+D'autres dossiers se donnent en arguments : `sh lancer.sh <dossier d'entrée> <dossier de sortie>`.
+
+Qui a déjà uv, sur tout système : copier `.env.example` en `.env`, y renseigner
+`ANTHROPIC_API_KEY`, puis, depuis la racine du dépôt :
+
+```sh
+uv run --locked --env-file .env saisie-commandes exemples sorties
 ```
 
 ## Relève de la boîte Gmail (bonus)
