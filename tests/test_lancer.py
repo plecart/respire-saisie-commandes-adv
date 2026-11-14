@@ -180,6 +180,8 @@ def type_key(tmp_path, script_env):
         pid, master = pty.fork()
         if pid == 0:  # Le script, dont le pseudo-terminal est le terminal de contrôle.
             try:
+                # Umask permissif : le mode 0600 du `.env` ne doit venir que du script.
+                os.umask(0o022)
                 os.execve(SH, [SH, str(tmp_path / SCRIPT)], script_env)
             finally:
                 os._exit(127)  # Jamais de retour dans pytest.
