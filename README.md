@@ -34,7 +34,7 @@ décision sont des règles écrites et testées, qui rendent toujours le même r
 
 | Statut | Ce qui en sort | Cas |
 | --- | --- | --- |
-| **Bloqué** | pas de commande : le document va à l'ADV avec son motif | pas un bon de commande (une facture, par exemple) ; pharmacie introuvable ou ambiguë ; EAN absent ou inconnu ; quantité ou prix illisible ; quantité en colis ; unités gratuites renseignées ; deux remises sur une ligne ; calcul incohérent ; mail qui ne porte pas exactement un PDF en pièce jointe |
+| **Bloqué** | pas de commande : le document va à l'ADV avec son motif | pas un bon de commande (une facture, par exemple) ; pharmacie introuvable ou ambiguë ; EAN absent, illisible, invalide ou inconnu ; quantité ou prix absent ou illisible ; quantité en colis ; unités gratuites renseignées ; deux remises sur une ligne ; calcul incohérent ; mail qui ne porte pas exactement un PDF en pièce jointe |
 | **Avertissement** | la commande, avec le point à vérifier | numéro de commande absent ou égal à « 0 » ; date de livraison absente, mal formée ou sans année ; code postal du document différent de celui de la fiche ; pharmacie inactive |
 | **Accepté** | la commande, sans alerte | y compris un prix à 0,00 € (geste commercial écrit sur le document), une date de livraison passée (c'est une date souhaitée) ou une désignation différente de celle de la base |
 

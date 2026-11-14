@@ -9,7 +9,7 @@
 # réinstalle rien.
 set -eu
 
-# À la racine du dépôt, d'où que le script soit lancé.
+# À la racine du dépôt, d'où que le script soit lancé : les dossiers donnés s'y rapportent.
 CDPATH= cd "$(dirname "$0")"
 input=${1:-exemples}
 output=${2:-sorties}
