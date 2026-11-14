@@ -34,13 +34,13 @@ décision sont des règles écrites et testées, qui rendent toujours le même r
 
 | Statut | Ce qui en sort | Cas |
 | --- | --- | --- |
-| **Bloqué** | pas de commande : le document va à l'ADV avec son motif | pas un bon de commande (une facture, par exemple) ; pharmacie introuvable ou ambiguë ; EAN absent, illisible, invalide ou inconnu ; quantité ou prix absent ou illisible ; quantité en colis ; unités gratuites renseignées ; deux remises sur une ligne ; calcul incohérent ; mail qui ne porte pas exactement un PDF en pièce jointe |
+| **Bloqué** | pas de commande : le document va à l'ADV avec son motif | **Document** : pas un bon de commande (une facture, par exemple) ; aucune ligne de commande ; total HT absent, illisible ou incohérent avec la somme des lignes<br>**Pharmacie** : nom absent ou illisible ; pharmacie introuvable, ou ambiguë (homonymes que le code postal ne départage pas)<br>**Ligne** : EAN absent, illisible, invalide ou inconnu ; quantité, prix catalogue ou total de ligne absent ou illisible ; unité illisible ; quantité en colis ; unités gratuites accordées, ou leur nombre illisible ; remise illisible ; plusieurs remises ; total de ligne incohérent avec quantité × prix × (1 − remise)<br>**Mail** : aucun PDF en pièce jointe, ou plusieurs<br>**Lecture impossible** : PDF illisible ou protégé par un mot de passe, Claude indisponible, clé refusée, réponse inexploitable… (voir « [Choix techniques](#choix-techniques) ») |
 | **Avertissement** | la commande, avec le point à vérifier | numéro de commande absent ou égal à « 0 » ; date de livraison absente, mal formée ou sans année ; code postal du document différent de celui de la fiche ; pharmacie inactive |
 | **Accepté** | la commande, sans alerte | y compris un prix à 0,00 € (geste commercial écrit sur le document), une date de livraison passée (c'est une date souhaitée) ou une désignation différente de celle de la base |
 
 **Ce qui n'est pas lu** : le texte libre et les annotations manuscrites, comme « passé cette
-date, annuler le reliquat ». D'un mail, seules les pièces jointes comptent : il en faut exactement
-une, en PDF, et le corps du message n'est jamais lu.
+date, annuler le reliquat ». D'un mail, seules les pièces jointes en PDF comptent, les autres sont
+ignorées : il en faut exactement une, et le corps du message n'est jamais lu.
 
 Les sorties du lot fourni sont versionnées dans [`sorties/`](sorties/) : `rapport.md` en donne
 le tableau récapitulatif et les motifs, document par document.
@@ -137,8 +137,9 @@ Les choix sont consignés dans l'[ADR 0001](docs/adr/0001-architecture-du-mvp.md
 - **Chaque document coûte un appel à l'IA**, même un PDF dont le texte serait lisible sans elle.
 - **Une lecture juste ne prouve pas la fiabilité** : sur un tableau dense, le filet est le
   contrôle des totaux de ligne, qui bloque la lecture fausse au lieu de la laisser passer.
-- **Mails** : un mail dont le PDF n'est pas une pièce jointe ordinaire (envoi direct d'un scanner,
-  mail signé, corps découpé autour de la pièce jointe) est bloqué.
+- **Mails** : un PDF qui n'est pas joint au premier niveau du mail n'est pas trouvé (envoi direct
+  d'un scanner, mail signé, PDF dans un message transféré ou dans le corps mis en forme d'un
+  message) : le mail est bloqué, faute de PDF en pièce jointe.
 - **Un PDF de plus d'une centaine de pages ou de 32 Mo** dépasse les limites d'un appel : il est
   bloqué sur un motif technique qui ne dit pas « trop gros ».
 - **L'envoi à Odoo n'a jamais tourné** contre une vraie instance.

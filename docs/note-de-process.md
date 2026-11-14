@@ -16,7 +16,7 @@ détail des règles et des statuts est en tête du [README](../README.md).
 | Étape | Ce qui se passe | Qui |
 | --- | --- | --- |
 | 1. Mail | La pharmacie envoie son bon de commande à la boîte de l'ADV. | la pharmacie |
-| 2. Réception | La boîte est relevée à intervalle régulier. Seule la pièce jointe compte : il faut exactement un PDF, sinon le mail part à l'ADV avec son motif. | automatique |
+| 2. Réception | La boîte est relevée à intervalle régulier. Seules les pièces jointes en PDF comptent, les autres sont ignorées : il en faut exactement une, sinon le mail part à l'ADV avec son motif. | automatique |
 | 3. Lecture | Chaque page est rendue en image et lue par Claude en un appel : il recopie les champs imprimés, et signale ce qu'il ne peut pas lire. | automatique (IA) |
 | 4. Rapprochement | La pharmacie est retrouvée par son nom (et son code postal entre homonymes), chaque article par son EAN, dans les clients et articles d'Odoo. | automatique (règles) |
 | 5. Statut | Chaque ligne et le total sont recalculés ; le document est accepté, signalé par un avertissement, ou bloqué. | automatique (règles) |
@@ -32,9 +32,19 @@ CSV fournis tiennent lieu des référentiels d'Odoo, et la fonction de l'étape 
 
 Chaque doute devient un statut et un motif en clair, jamais une correction silencieuse.
 
-- **Bloqué**, l'ADV reprend la main : document qui n'est pas une commande, pharmacie introuvable
-  ou ambiguë, EAN absent, illisible, invalide ou inconnu, quantité ou prix absent ou illisible,
-  quantité en colis, unités gratuites, double remise, calcul incohérent, mail sans PDF unique.
+- **Bloqué**, l'ADV reprend la main :
+  - **Document** : pas un bon de commande (une facture, par exemple) ; aucune ligne de commande ;
+    total HT absent, illisible ou incohérent avec la somme des lignes
+  - **Pharmacie** : nom absent ou illisible ; pharmacie introuvable, ou ambiguë (homonymes que le
+    code postal ne départage pas)
+  - **Ligne** : EAN absent, illisible, invalide ou inconnu ; quantité, prix catalogue ou total de
+    ligne absent ou illisible ; unité illisible ; quantité en colis ; unités gratuites accordées, ou
+    leur nombre illisible ; remise illisible ; plusieurs remises ; total de ligne incohérent avec
+    quantité × prix × (1 − remise)
+  - **Mail** : aucun PDF en pièce jointe, ou plusieurs
+  - **Lecture impossible** : PDF illisible ou protégé par un mot de passe, Claude indisponible, clé
+    refusée, réponse inexploitable… (voir « [Choix techniques](../README.md#choix-techniques) » du
+    README)
 - **Avertissement**, l'ADV vérifie un point précis : numéro de commande absent ou « 0 », date de
   livraison absente, mal formée ou sans année, code postal différent de la fiche, pharmacie
   inactive.
