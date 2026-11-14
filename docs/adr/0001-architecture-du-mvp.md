@@ -78,7 +78,7 @@ Un fichier dédié contient la fonction qui créerait la commande par XML-RPC. E
 
 ### 9. Lancement en une commande : uv, et un script d'amorçage pour macOS
 
-Le programme se lance par `uv run --locked saisie-commandes <entrée> <sortie>` : uv installe la version de Python et les dépendances figées par `uv.lock`. Pour qui n'a pas uv, `sh lancer.sh` (macOS) l'installe dans le dossier de l'utilisateur, sans droits administrateur, puis lance le programme.
+Le programme se lance par `uv run --locked saisie-commandes <entrée> <sortie>` : uv installe la version de Python et les dépendances figées par `uv.lock`. Pour qui n'a pas uv, `sh lancer.sh` (macOS) l'installe dans le dossier de l'utilisateur, sans droits administrateur, puis prépare Python et les dépendances sans traiter aucun document, et affiche la commande de relève de la boîte Gmail.
 
 Pas de conteneur, de base de données ni de service annexe. La clé d'API est lue dans un fichier `.env` non versionné : elle est indispensable, sans elle aucune extraction n'est possible.
 
