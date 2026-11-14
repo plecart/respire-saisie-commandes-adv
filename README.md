@@ -7,41 +7,57 @@ vente Odoo : un JSON par commande et un rapport d'anomalies. Le process est déc
 
 ## Lancement
 
-Il faut une clé d'API Anthropic, créée dans la Claude Console **rattachée à un workspace** (sans
-quoi l'API répond 400). Elle ne s'écrit que dans `.env`, jamais versionné.
+1. Créer à la racine du dépôt un fichier `.env` contenant :
 
-Sur Mac, sans rien installer, depuis la racine du dépôt :
+   ```sh
+   ANTHROPIC_API_KEY=<clé d'API Anthropic>
+   ```
+
+2. Depuis la racine du dépôt, sur Mac (installe uv et Python s'ils manquent) :
+
+   ```sh
+   sh lancer.sh
+   ```
+
+   Ou, avec uv déjà installé, sur tout système :
+
+   ```sh
+   uv run --locked --env-file .env saisie-commandes exemples sorties
+   ```
+
+Le dossier `exemples/` est traité : un JSON par commande et `rapport.md` vont dans `sorties/`, et
+le terminal affiche le résultat de chaque document.
+
+## Tester la réception d'un mail
+
+**Par un fichier `.eml`** : déposer dans `exemples/` un mail `.eml` portant un PDF en pièce
+jointe, puis relancer la commande ci-dessus. Deux mails y sont déjà : `Mail_valide.eml` et
+`Mail_sans_piece_jointe.eml`.
+
+**Par Gmail** : ajouter au `.env` l'adresse de la boîte et son mot de passe d'application :
 
 ```sh
-sh lancer.sh
+GMAIL_ADDRESS=<adresse Gmail>
+GMAIL_APP_PASSWORD=<mot de passe d'application>
 ```
 
-Le script demande la clé, installe uv au besoin (sans droits administrateur), traite `exemples/`
-vers `sorties/` et affiche erreurs, avertissements et JSON de chaque document. Autres dossiers :
-`sh lancer.sh <entrée> <sortie>`.
-
-Avec uv, sur tout système : copier `.env.example` en `.env`, y mettre `ANTHROPIC_API_KEY`, puis :
+puis lancer (sur Mac après `lancer.sh`, uv est dans `~/.local/bin/uv`) :
 
 ```sh
-uv run --locked --env-file .env saisie-commandes exemples sorties
+uv run --locked --env-file .env saisie-commandes-releve sorties
 ```
 
-**Relève Gmail (bonus)** : renseigner `GMAIL_ADDRESS` et `GMAIL_APP_PASSWORD` dans `.env`, puis
-`uv run --locked --env-file .env saisie-commandes-releve sorties`. Toutes les 10 s, les mails non
-lus sont marqués lus et traités vers `sorties/mail-<UID>/` ; Ctrl+C arrête.
+Envoyer à cette adresse un mail portant un PDF. Toutes les 10 secondes, les mails non lus sont
+traités : le résultat s'affiche dans le terminal et va dans `sorties/mail-<UID>/`. Ctrl+C arrête.
 
 ## Choix techniques
-
-Détaillés dans l'[ADR 0001](docs/adr/0001-architecture-du-mvp.md).
 
 - **L'IA lit, le code décide** : Claude recopie le document ; rapprochement, calculs et statut
   sont des règles écrites et testées.
 - **Une seule voie de lecture, la page en image**, un appel par document, réponse contrainte par
   un schéma : trois des cinq PDF sont des scans sans texte exploitable.
-- **Claude Haiku 5.5**, le moins cher qui lit juste : comparé le 2026-11-13 aux lectures faites à
-  la main, il reproduit les cinq documents à 220 dpi (10 sur 10 sur Commande_1 ; à 150 dpi, une
-  ligne décalée deux fois sur six). Sonnet lisait juste dès 150 dpi, pour environ dix fois le
-  prix. Variable `CLAUDE_MODEL`.
+- **Claude Haiku 5.5**, le moins cher qui lit juste : il reproduit les cinq documents lus à la
+  main, pages rendues à 220 dpi. Sonnet lit aussi juste, pour environ dix fois le prix.
 - **Une erreur ne fait pas tomber le lot** : seul son document est bloqué, motif en clair. Erreur
   temporaire de l'API : trois essais, deux minutes au plus chacun.
 - **Calculs en décimal**, arrondi au demi supérieur, tolérance d'un centime.
@@ -84,10 +100,5 @@ Détaillés dans l'[ADR 0001](docs/adr/0001-architecture-du-mvp.md).
 
 ## Temps passé
 
-Reconstitué depuis l'historique Git (UTC+1) et le journal de bord ; à corriger par l'auteur.
-
-- **13 novembre, 12 h 49 → 0 h 12** (≈ 11 h 20, pauses comprises) : énoncé, analyse des PDF et
-  CSV, ADR, issues, puis cœur sans IA, lecture par Claude et mails.
-- **14 novembre, matinée** : lancement sur macOS, README et note de process.
-
-La lecture de l'énoncé avant le premier commit n'est pas datée.
+De la compréhension du sujet à l'analyse du contenu et des PDF, aux planifications, au
+développement et au test, environ 2 jours.
