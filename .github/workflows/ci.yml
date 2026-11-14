@@ -145,17 +145,20 @@ jobs:
           grep -qF .env "$RUNNER_TEMP/erreur.txt"
           grep -qF ANTHROPIC_API_KEY "$RUNNER_TEMP/erreur.txt"
 
-      # Clé factice : uv s'installe dans `~/.local/bin`, prépare Python et les dépendances, et le
-      # script affiche la commande de relève par ce chemin. Rien n'est traité : `sorties/` reste
-      # tel que le dépôt le porte, et la commande affichée trouve le programme de relève installé.
-      - name: Préparatifs avec une clé factice
+      # Clé factice sans boîte Gmail : uv s'installe, prépare Python et les dépendances, puis lance
+      # la relève, qui s'arrête en 1 sur un message nommant les variables de la boîte, sans se
+      # connecter. Le trouver prouve que l'app a démarré ; `sorties/` reste tel que le dépôt le
+      # porte, preuve qu'aucun exemple n'a été traité.
+      - name: Relève lancée avec une clé factice
         run: |
           echo ANTHROPIC_API_KEY=sk-ant-factice > .env
-          sh lancer.sh | tee "$RUNNER_TEMP/sortie.txt"
-          grep -qF "~/.local/bin/uv run --locked --env-file .env saisie-commandes-releve sorties" \
-            "$RUNNER_TEMP/sortie.txt"
+          if sh lancer.sh 2> "$RUNNER_TEMP/erreur.txt"; then
+            echo "::error::lancer.sh est sorti en 0 sans boîte Gmail."
+            exit 1
+          fi
+          cat "$RUNNER_TEMP/erreur.txt"
+          grep -qF GMAIL_ADDRESS "$RUNNER_TEMP/erreur.txt"
           if [ -n "$(git status --porcelain --untracked-files=normal -- sorties)" ]; then
             echo "::error::lancer.sh a écrit dans sorties/."
             exit 1
           fi
-          test -x .venv/bin/saisie-commandes-releve

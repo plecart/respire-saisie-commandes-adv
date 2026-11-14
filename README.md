@@ -7,50 +7,39 @@ vente Odoo : un JSON par commande et un rapport d'anomalies. Le process est déc
 
 ## Lancement
 
-1. Créer à la racine du dépôt un fichier `.env` contenant :
+1. Placer à la racine du dépôt un fichier `.env` contenant la clé d'API et la boîte Gmail :
 
    ```sh
    ANTHROPIC_API_KEY=<clé d'API Anthropic>
+   GMAIL_ADDRESS=<adresse Gmail>
+   GMAIL_APP_PASSWORD=<mot de passe d'application>
    ```
 
-2. Sur Mac, préparer depuis la racine du dépôt : le script installe uv et Python s'ils manquent,
-   puis les dépendances, sans traiter aucun document, et affiche la commande de relève Gmail.
+2. Sur Mac, depuis la racine du dépôt :
 
    ```sh
    sh lancer.sh
    ```
 
-3. Traiter un dossier, avec uv (sur Mac après `lancer.sh`, `~/.local/bin/uv` s'il y a été
-   installé) :
+   Le script télécharge seulement ce qui manque (uv, Python, dépendances), puis lance la relève
+   de la boîte Gmail. Relancé, il ne télécharge plus rien.
 
-   ```sh
-   uv run --locked --env-file .env saisie-commandes exemples sorties
-   ```
+3. Envoyer à l'adresse Gmail un mail portant un PDF. Toutes les 10 secondes, les mails non lus
+   sont traités : le résultat s'affiche dans le terminal et va dans `sorties/mail-<UID>/`.
+   Ctrl+C arrête.
 
-   Un JSON par commande et `rapport.md` vont dans `sorties/`, et le terminal affiche le résultat
-   de chaque document.
+## Traiter un dossier
 
-## Tester la réception d'un mail
+Avec uv installé, sur tout système (sur Mac après `lancer.sh`, `~/.local/bin/uv` s'il n'est pas
+sur le PATH) :
 
-**Par un fichier `.eml`** : déposer dans `exemples/` un mail `.eml` portant un PDF en pièce
-jointe, puis lancer la commande de traitement ci-dessus. Deux mails y sont déjà :
+```sh
+uv run --locked --env-file .env saisie-commandes exemples sorties
+```
+
+Un JSON par commande et `rapport.md` vont dans `sorties/`, et le terminal affiche le résultat de
+chaque document. Les mails `.eml` portant un PDF se traitent de même : deux sont dans `exemples/`,
 `Mail_valide.eml` et `Mail_sans_piece_jointe.eml`.
-
-**Par Gmail** : ajouter au `.env` l'adresse de la boîte et son mot de passe d'application :
-
-```sh
-GMAIL_ADDRESS=<adresse Gmail>
-GMAIL_APP_PASSWORD=<mot de passe d'application>
-```
-
-puis lancer la commande qu'affiche `lancer.sh` (ici avec uv sur le PATH) :
-
-```sh
-uv run --locked --env-file .env saisie-commandes-releve sorties
-```
-
-Envoyer à cette adresse un mail portant un PDF. Toutes les 10 secondes, les mails non lus sont
-traités : le résultat s'affiche dans le terminal et va dans `sorties/mail-<UID>/`. Ctrl+C arrête.
 
 ## Choix techniques
 
@@ -68,8 +57,8 @@ traités : le résultat s'affiche dans le terminal et va dans `sorties/mail-<UID
   contre un faux serveur, jamais exécutée.
 - **Python 3.12 et uv**, sans conteneur ; `anthropic`, `pymupdf`, `pydantic`.
 - **Tests sans IA** (`uv run pytest`) : Claude est remplacé par les lectures attendues ;
-  couverture de 80 % exigée. La CI lance lint, format et tests sous Linux, les préparatifs de
-  `lancer.sh` sous macOS.
+  couverture de 80 % exigée. La CI lance lint, format et tests sous Linux, `lancer.sh` sous
+  macOS.
 
 ## Limites connues
 
