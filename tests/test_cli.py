@@ -100,7 +100,7 @@ def test_un_mail_bloque_figure_au_rapport_et_au_terminal_sans_appeler_l_extracte
     assert (code, capsys.readouterr().out, report, [path.name for path in output.iterdir()]) == (
         0,
         f"{table}\n",
-        f"{table}\n\n## Mail\n\n- mail sans pièce jointe\n",
+        f"{table}\n\n## Mail\n\n- aucun PDF en pièce jointe\n",
         ["rapport.md"],
     )
 

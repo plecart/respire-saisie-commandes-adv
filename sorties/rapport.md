@@ -28,4 +28,4 @@
 
 ## Mail_sans_piece_jointe
 
-- mail sans pièce jointe
+- aucun PDF en pièce jointe

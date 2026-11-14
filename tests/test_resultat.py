@@ -21,5 +21,5 @@ def test_le_statut_se_deduit_des_anomalies(anomalies, status):
 
 
 def test_un_document_bloque_s_exprime_sans_rien_d_etabli():
-    mail = DocumentResult((Anomaly("mail sans pièce jointe PDF", blocking=True),))
+    mail = DocumentResult((Anomaly("aucun PDF en pièce jointe", blocking=True),))
     assert (mail.status, mail.order, mail.summary) == (Status.BLOCKED, None, Summary())
