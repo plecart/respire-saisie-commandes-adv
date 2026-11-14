@@ -49,6 +49,11 @@ else
     # Le PATH du shell courant ignore le nouveau dossier : uv s'appelle par son chemin.
     curl -LsSf https://astral.sh/uv/install.sh |
       env UV_INSTALL_DIR="$uv_dir" UV_NO_MODIFY_PATH=1 sh
+    # Le code d'un tube est celui de sa dernière commande : un curl en échec n'arrête rien.
+    if [ ! -x "$uv" ]; then
+      echo "lancer.sh : l'installation d'uv a échoué (vérifiez la connexion à Internet)." >&2
+      exit 1
+    fi
   fi
 fi
 
