@@ -11,7 +11,7 @@ détail des règles et des statuts est en tête du [README](../README.md).
 
 ## Le flux
 
-![Flux du mail à Odoo](flux.png)
+![Du mail à la commande : entrée, réception, extraction, règles métier, résultat, sorties](flux-commandes.png)
 
 | Étape | Ce qui se passe | Qui |
 | --- | --- | --- |
