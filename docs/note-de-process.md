@@ -33,8 +33,8 @@ CSV fournis tiennent lieu des référentiels d'Odoo, et la fonction de l'étape 
 Chaque doute devient un statut et un motif en clair, jamais une correction silencieuse.
 
 - **Bloqué**, l'ADV reprend la main : document qui n'est pas une commande, pharmacie introuvable
-  ou ambiguë, EAN absent ou inconnu, quantité ou prix illisible, quantité en colis, unités
-  gratuites, double remise, calcul incohérent, mail sans PDF unique.
+  ou ambiguë, EAN absent, illisible, invalide ou inconnu, quantité ou prix absent ou illisible,
+  quantité en colis, unités gratuites, double remise, calcul incohérent, mail sans PDF unique.
 - **Avertissement**, l'ADV vérifie un point précis : numéro de commande absent ou « 0 », date de
   livraison absente, mal formée ou sans année, code postal différent de la fiche, pharmacie
   inactive.
@@ -68,7 +68,7 @@ jusqu'à 100 000 jetons.
 | Commande_2 | 5 | 7 286 | 823 | 0,0011 $ |
 | Commande_3 | 18 | 7 286 | 2 289 | 0,0019 $ |
 | Commande_5 | 6 | 7 286 | 1 090 | 0,0013 $ |
-| Document_4 | 7 | 7 286 | 1 646 | 0,0016 $ |
+| Document_4 | 8 | 7 286 | 1 646 | 0,0016 $ |
 | **Les cinq** | | **36 430** | **7 850** | **0,0076 $** |
 
 Un document d'une page coûte donc environ 0,15 centime de dollar, soit 1,50 $ les mille. La
