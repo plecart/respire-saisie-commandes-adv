@@ -70,7 +70,7 @@ def _process(document: Path, extract: Extractor, references: ReferenceData) -> D
     except RejectedMail as rejection:
         return _blocked(str(rejection))
     except Exception as error:  # noqa: BLE001 (frontière par document, voir la docstring)
-        return _blocked(f"lecture impossible : {str(error) or type(error).__name__}")
+        return _blocked(f"lecture impossible : {describe_error(error)}")
     return apply_rules(fields, references)
 
 
@@ -87,6 +87,11 @@ def _raw_fields(document: Path, extract: Extractor) -> RawFields:
         return extract(document)
     with tempfile.TemporaryDirectory(ignore_cleanup_errors=True) as directory:
         return extract(save_pdf_attachment(document, Path(directory)))
+
+
+def describe_error(error: BaseException) -> str:
+    """Texte d'une erreur dans un motif : son message, à défaut le nom de sa classe."""
+    return str(error) or type(error).__name__
 
 
 def _blocked(reason: str) -> DocumentResult:
