@@ -25,8 +25,9 @@ if [ ! -f .env ]; then
   # L'écho du terminal est rétabli à toute sortie pendant la saisie, interruption comprise.
   trap 'stty echo' EXIT
   trap 'exit 130' HUP INT TERM
-  printf "Clé d'API Anthropic (ANTHROPIC_API_KEY), saisie masquée : " >&2
+  # Écho coupé avant l'invite, comme `getpass` de Python : rien de tapé dès l'invite ne s'affiche.
   stty -echo
+  printf "Clé d'API Anthropic (ANTHROPIC_API_KEY), saisie masquée : " >&2
   read -r api_key || true
   stty echo
   trap - EXIT HUP INT TERM
