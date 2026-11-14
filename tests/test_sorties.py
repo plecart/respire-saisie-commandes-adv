@@ -210,7 +210,8 @@ def test_le_json_affiche_au_terminal_est_le_contenu_du_fichier_ecrit_accents_com
     results = {"Commande": DocumentResult((), order=order)}
     write_outputs(results, tmp_path)
     shown = f"{terminal_view(results)}\n".encode()
-    assert shown == b"Commande\n" + (tmp_path / "Commande.json").read_bytes()
+    file = (tmp_path / "Commande.json").read_bytes()
+    assert (shown, '"n° 4"'.encode() in file) == (b"Commande\n" + file, True)
 
 
 def test_une_barre_verticale_imprimee_ne_decale_pas_les_colonnes_du_tableau():
