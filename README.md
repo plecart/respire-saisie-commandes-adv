@@ -31,3 +31,8 @@ Toutes les 10 secondes, la commande relève les mails non lus de la boîte de r�
 est marqué lu et traité comme un `.eml` du dossier d'entrée : son tableau récapitulatif s'affiche
 dans le terminal, ses sorties vont dans `sorties/mail-<UID>/`. Aucun mail n'est envoyé. Ctrl+C
 arrête la relève.
+
+Une coupure réseau s'affiche, et la relève reprend au cycle suivant. Un mot de passe refusé, même
+en cours de relève, l'arrête. Si le traitement d'un mail échoue (disque plein, dossier de sortie
+inaccessible…), la relève s'arrête sur un message qui nomme le mail, `mail-<UID>` : déjà marqué
+lu, il est à remettre non lu dans Gmail pour être retraité au prochain lancement.
