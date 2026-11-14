@@ -83,11 +83,7 @@ jusqu'à 100 000 jetons.
 
 Un document d'une page coûte donc environ 0,15 centime de dollar, soit 1,50 $ les mille. La
 sortie varie d'une lecture à l'autre : 8 100 jetons environ pour les cinq lors de la mesure du
-2026-11-13. Au regard de la revue humaine, le document le plus cher, à 0,0019 $, coûte moins
-qu'une seule seconde de travail de l'ADV dès que son heure revient à plus de 6,84 $
-(0,0019 $ × 3 600 secondes) : le coût récurrent qui compte est le temps de l'ADV sur les
-documents signalés ou bloqués. Ce temps par document et le coût horaire de l'ADV sont à poser
-par Respire.
+2026-11-13.
 
 **Sécurité.**
 
