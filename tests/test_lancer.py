@@ -51,13 +51,20 @@ TOOLS = ("sh", "env", "dirname", "stty", "cat", "mkdir", "chmod")
 """Utilitaires externes qu'appellent le script, le faux installeur et `sh` lui-même."""
 
 UV_EXIT_CODE = 3
-"""Code de sortie du faux `uv`, distinct de 0 et de 1."""
+"""Code de sortie du faux `uv` en échec, distinct de 0 et de 1."""
 
-FAKE_UV = rf"""#!/bin/sh
+
+def _fake_uv(exit_code: int) -> str:
+    """Faux `uv` : consigne ses arguments, un par ligne, et sort en `exit_code`."""
+    return rf"""#!/bin/sh
 printf '%s\n' "$@" > "$HOME/uv.log"
-exit {UV_EXIT_CODE}
+exit {exit_code}
 """
-"""Faux `uv` : consigne ses arguments, un par ligne."""
+
+
+FAKE_UV = _fake_uv(0)
+
+FAILING_UV = _fake_uv(UV_EXIT_CODE)
 
 FAKE_CURL = rf"""#!/bin/sh
 printf '%s\n' "$@" > "$HOME/curl.log"
@@ -80,11 +87,11 @@ exit 6
 """
 """Faux `curl` sans connexion : sort en 6 (hôte introuvable) sans rien rendre."""
 
-RUN = ["run", "--locked", "--env-file", ".env", "saisie-commandes"]
-"""Arguments que reçoit uv, avant les dossiers d'entrée et de sortie."""
+SYNC = ["sync", "--locked"]
+"""Arguments que reçoit uv : la préparation de l'environnement, sans aucun traitement."""
 
-DEFAULT_RUN = [*RUN, "exemples", "sorties"]
-"""Arguments que reçoit uv d'un lancement sans argument."""
+RELEVE = "run --locked --env-file .env saisie-commandes-releve sorties"
+"""Commande de relève affichée à la fin, derrière le chemin d'uv."""
 
 PROMPT = "saisie masquée : ".encode()
 """Fin de l'invite de la clé d'API, après laquelle le script attend la saisie."""
@@ -141,9 +148,11 @@ def launch(tmp_path, script_env):
     La fonction rendue lance le script ; sous `uv_on_path`, le faux `uv` est sur le PATH.
     """
 
-    def run(*args: str, uv_on_path: bool = True) -> subprocess.CompletedProcess[str]:
+    def run(
+        *args: str, uv_on_path: bool = True, uv: str = FAKE_UV
+    ) -> subprocess.CompletedProcess[str]:
         if uv_on_path:
-            _write_executable(tmp_path / FAKES / "uv", FAKE_UV)
+            _write_executable(tmp_path / FAKES / "uv", uv)
         return subprocess.run(
             [SH, SCRIPT.as_posix(), *args],
             check=False,
@@ -245,36 +254,36 @@ def test_sans_env_ni_terminal_le_script_s_arrete_sur_un_message_sans_rien_lancer
     ) == (True, True, True, False, None, None), result.stderr
 
 
-@pytest.mark.parametrize(
-    ("args", "expected"),
-    [
-        ((), DEFAULT_RUN),
-        (("bons reçus", "lot du jour"), [*RUN, "bons reçus", "lot du jour"]),
-    ],
-)
-def test_le_script_lance_le_programme_par_l_uv_du_path_sur_les_dossiers_demandes(
-    launch, tmp_path, args, expected
+@pytest.mark.parametrize("args", [pytest.param((), id="sans-argument"), ("exemples", "sorties")])
+def test_le_script_prepare_l_environnement_sans_rien_traiter_puis_affiche_la_commande_de_releve(
+    launch, tmp_path, args
 ):
-    """Sans argument, les dossiers par défaut ; un dossier dont le nom a une espace reste un."""
-    launch(*args)
-    assert _logged(tmp_path, "uv") == expected
+    """uv du PATH : seule la préparation est lancée, des dossiers donnés ou non."""
+    result = launch(*args)
+    assert (result.returncode, _logged(tmp_path, "uv"), f"  uv {RELEVE}\n" in result.stdout) == (
+        0,
+        SYNC,
+        True,
+    ), result.stdout
 
 
-def test_le_code_de_sortie_du_script_est_celui_du_programme(launch):
-    assert launch().returncode == UV_EXIT_CODE
+def test_un_echec_de_la_preparation_arrete_le_script_sans_afficher_la_commande_de_releve(launch):
+    result = launch(uv=FAILING_UV)
+    assert (result.returncode, RELEVE in result.stdout) == (UV_EXIT_CODE, False), result.stdout
 
 
-def test_sans_uv_le_script_l_installe_dans_le_dossier_de_l_utilisateur_puis_le_lance(
+def test_sans_uv_le_script_l_installe_dans_le_dossier_de_l_utilisateur_puis_prepare(
     launch, tmp_path
 ):
-    """Installeur officiel, profils du shell intacts, puis uv lancé par son chemin."""
-    launch(uv_on_path=False)
+    """Installeur officiel, profils du shell intacts, puis uv appelé et affiché par son chemin."""
+    result = launch(uv_on_path=False)
     assert (
         INSTALLER_URL in (_logged(tmp_path, "curl") or []),
         _logged(tmp_path, "installer"),
         (tmp_path / INSTALLED_UV).is_file(),
         _logged(tmp_path, "uv"),
-    ) == (True, ["1"], True, DEFAULT_RUN)
+        f"  ~/.local/bin/uv {RELEVE}\n" in result.stdout,
+    ) == (True, ["1"], True, SYNC, True), result.stdout
 
 
 def test_un_uv_deja_installe_dans_le_dossier_de_l_utilisateur_ne_se_reinstalle_pas(
@@ -282,7 +291,7 @@ def test_un_uv_deja_installe_dans_le_dossier_de_l_utilisateur_ne_se_reinstalle_p
 ):
     _write_executable(tmp_path / INSTALLED_UV, FAKE_UV)
     launch(uv_on_path=False)
-    assert (_logged(tmp_path, "curl"), _logged(tmp_path, "uv")) == (None, DEFAULT_RUN)
+    assert (_logged(tmp_path, "curl"), _logged(tmp_path, "uv")) == (None, SYNC)
 
 
 def test_sans_connexion_l_installation_d_uv_echoue_sur_un_message_qui_la_nomme(launch, tmp_path):
@@ -295,14 +304,14 @@ def test_sans_connexion_l_installation_d_uv_echoue_sur_un_message_qui_la_nomme(l
 
 @needs_pty
 def test_la_cle_saisie_est_ecrite_dans_env_lisible_par_l_utilisateur_seul(type_key, tmp_path):
-    """Le fichier est en mode 0600, puis le programme est lancé."""
+    """Le fichier est en mode 0600, puis l'environnement est préparé."""
     type_key(KEY_LINE)
     env_file = tmp_path / ENV_FILE
     assert (
         env_file.read_text(encoding="utf-8"),
         env_file.stat().st_mode & 0o777,
         _logged(tmp_path, "uv"),
-    ) == (f"ANTHROPIC_API_KEY={TYPED_KEY}\n", 0o600, DEFAULT_RUN)
+    ) == (f"ANTHROPIC_API_KEY={TYPED_KEY}\n", 0o600, SYNC)
 
 
 @needs_pty

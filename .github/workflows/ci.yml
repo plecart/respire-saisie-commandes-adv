@@ -145,15 +145,17 @@ jobs:
           grep -qF .env "$RUNNER_TEMP/erreur.txt"
           grep -qF ANTHROPIC_API_KEY "$RUNNER_TEMP/erreur.txt"
 
-      # Clé factice : uv s'installe, le lot tourne, Claude refuse chaque lecture sans rien facturer,
-      # chaque document finit bloqué et le programme rend 0. Le rapport du dépôt ne porte aucun
-      # refus : le trouver dans `sorties/rapport.md` prouve que ce lancement l'a réécrit.
-      - name: Lot complet avec une clé factice
+      # Clé factice : uv s'installe dans `~/.local/bin`, prépare Python et les dépendances, et le
+      # script affiche la commande de relève par ce chemin. Rien n'est traité : `sorties/` reste
+      # tel que le dépôt le porte, et la commande affichée trouve le programme de relève installé.
+      - name: Préparatifs avec une clé factice
         run: |
           echo ANTHROPIC_API_KEY=sk-ant-factice > .env
-          sh lancer.sh
-          grep -F "clé d'API refusée par Claude" sorties/rapport.md
-          if grep -F -e '| accepté |' -e '| avertissement |' sorties/rapport.md; then
-            echo "::error::Un document n'est pas bloqué malgré la clé factice."
+          sh lancer.sh | tee "$RUNNER_TEMP/sortie.txt"
+          grep -qF "~/.local/bin/uv run --locked --env-file .env saisie-commandes-releve sorties" \
+            "$RUNNER_TEMP/sortie.txt"
+          if [ -n "$(git status --porcelain --untracked-files=normal -- sorties)" ]; then
+            echo "::error::lancer.sh a écrit dans sorties/."
             exit 1
           fi
+          test -x .venv/bin/saisie-commandes-releve
