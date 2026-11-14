@@ -112,7 +112,7 @@ def test_le_terminal_affiche_le_tableau_recapitulatif_sans_le_detail(lot):
             ],
             id="commande-5",
         ),
-        pytest.param("Mail_sans_piece_jointe", ["mail sans pièce jointe"], id="mail-sans-pj"),
+        pytest.param("Mail_sans_piece_jointe", ["aucun PDF en pièce jointe"], id="mail-sans-pj"),
         pytest.param("Mail_valide", [], id="mail-valide"),
     ],
 )

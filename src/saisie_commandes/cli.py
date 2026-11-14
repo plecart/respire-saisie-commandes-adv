@@ -5,9 +5,10 @@ métier et sorties (PRD #1, « Modules ») : le dossier de sortie reçoit un JSO
 produite et le rapport `rapport.md`, le terminal le tableau récapitulatif du lot. Les
 référentiels se lisent dans `referentiels/`, sous le dossier courant.
 
-Un mail se traite comme le PDF qu'il porte en seule pièce jointe, écrit le temps de son
-extraction dans un dossier temporaire ; tout autre mail est bloqué sans être extrait. Un document
-dont la lecture échoue est bloqué, motif « lecture impossible : … » ; le lot continue.
+Un mail se traite comme le seul PDF parmi ses pièces jointes, les autres ignorées, écrit le temps
+de son extraction dans un dossier temporaire ; un mail sans PDF joint, ou à plusieurs PDF joints,
+est bloqué sans être extrait (`reception`). Un document dont la lecture échoue est bloqué, motif
+« lecture impossible : … » ; le lot continue.
 
 L'extraction est injectée (`main`, `process_documents`) ; à défaut, la commande lit les documents
 par Claude, selon l'environnement (`extraction`). Sans clé d'API, elle s'arrête sur un message,
@@ -79,7 +80,7 @@ def _raw_fields(document: Path, extract: Extractor) -> RawFields:
     de cette suppression (fichier encore ouvert sous Windows) n'interrompt pas le lot.
 
     Raises:
-        RejectedMail: le document est un mail qui ne porte pas un seul PDF.
+        RejectedMail: le document est un mail qui ne porte aucun PDF joint, ou en porte plusieurs.
     """
     if not is_mail(document):
         return extract(document)

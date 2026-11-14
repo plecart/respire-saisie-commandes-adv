@@ -26,6 +26,12 @@ PDF_DIRECTORY = Path("temporaire", "mail")
 UNPRINTABLE = chr(0xFFFD)
 """Caractère qui remplace, dans un motif de rejet, un caractère non imprimable venu du mail."""
 
+NO_PDF = "aucun PDF en pièce jointe"
+"""Motif de rejet d'un mail sans PDF joint."""
+
+SEVERAL_PDFS = "plusieurs PDF en pièce jointe ({}), un seul attendu"
+"""Motif de rejet d'un mail à plusieurs PDF joints, à compléter de leurs noms."""
+
 
 def save(message: EmailMessage | bytes, root: Path) -> Path:
     """Écrit le mail dans `root`, puis son PDF joint sous `root / PDF_DIRECTORY` ; rend le PDF."""
@@ -45,18 +51,43 @@ def decision(message: EmailMessage | bytes, root: Path) -> str | tuple[str, byte
     return written.name, written.read_bytes()
 
 
+def rejection(message: EmailMessage, root: Path) -> tuple[str, list[Path]]:
+    """Motif de rejet d'un mail, et ce qui s'est écrit dans le dossier de son PDF."""
+    with pytest.raises(RejectedMail) as rejected:
+        save(message, root)
+    return str(rejected.value), list((root / PDF_DIRECTORY).iterdir())
+
+
 def forwarded() -> EmailMessage:
-    """Mail qui porte en seule pièce jointe un message transféré, sans nom de fichier."""
+    """Mail qui porte en seule pièce jointe un message transféré, lui-même porteur d'un PDF."""
     message = mail()
-    message.add_attachment(mail(body="Commande transférée.\n"))
+    message.add_attachment(mail(("Commande.pdf", PDF_TYPE)))
     return message
 
 
-def raw_mail(content_type: str, disposition: str, count: int = 1) -> bytes:
-    """Mail brut, sans corps, portant `count` pièces jointes aux deux en-têtes tels quels."""
-    part = f"--B\nContent-Type: {content_type}\nContent-Disposition: {disposition}\n\nContenu.\n"
+def signed() -> EmailMessage:
+    """Mail signé S/MIME : texte et PDF sous une partie `multipart/mixed`, puis `smime.p7s`."""
+    signature = EmailMessage()
+    signature.set_content(b"signature", "application", "pkcs7-signature", filename="smime.p7s")
+    message = EmailMessage()
+    message["Content-Type"] = 'multipart/signed; protocol="application/pkcs7-signature"'
+    message.attach(mail(("Commande.pdf", PDF_TYPE)))
+    message.attach(signature)
+    return message
+
+
+def scanned() -> EmailMessage:
+    """Mail de scanner : sans parties, tout son contenu est le PDF."""
+    message = EmailMessage()
+    message.set_content(PDF, "application", "pdf", filename="scan.pdf")
+    return message
+
+
+def raw_mail(disposition: str) -> bytes:
+    """Mail brut, sans corps, portant deux PDF joints à ce `Content-Disposition` tel quel."""
+    part = f"--B\nContent-Type: {PDF_TYPE}\nContent-Disposition: {disposition}\n\nContenu.\n"
     headers = "MIME-Version: 1.0\nContent-Type: multipart/mixed; boundary=B\n"
-    return f"{headers}\n{part * count}--B--\n".encode()
+    return f"{headers}\n{part * 2}--B--\n".encode()
 
 
 def test_la_reception_rend_les_pdf_et_les_mails_du_dossier_dans_l_ordre_de_leurs_noms(tmp_path):
@@ -77,35 +108,48 @@ def test_le_pdf_seul_joint_a_un_mail_s_ecrit_dans_le_dossier_sous_son_nom(tmp_pa
 
 
 @pytest.mark.parametrize(
-    ("message", "reason"),
+    "other",
     [
-        pytest.param(mail(body=ORDER_BODY), "mail sans pièce jointe", id="sans-piece-jointe"),
+        pytest.param(("logo.png", "image/png"), id="image-png"),
+        pytest.param(("smime.p7s", "application/pkcs7-signature"), id="signature-smime"),
+    ],
+)
+def test_un_pdf_joint_parmi_d_autres_pieces_jointes_se_traite_comme_ce_pdf(tmp_path, other):
+    """La pièce jointe qui n'est pas un PDF vient en premier : elle est ignorée, pas retenue."""
+    assert decision(mail(other, ("Commande.pdf", PDF_TYPE)), tmp_path) == ("Commande.pdf", PDF)
+
+
+@pytest.mark.parametrize(
+    "message",
+    [
+        pytest.param(mail(body=ORDER_BODY), id="sans-piece-jointe"),
+        pytest.param(mail(("devis.docx", DOCX_TYPE)), id="seule-piece-jointe-docx"),
+        pytest.param(forwarded(), id="seul-message-transfere-porteur-d-un-pdf"),
+        pytest.param(signed(), id="signe-smime"),
+        pytest.param(scanned(), id="mail-de-scanner"),
+    ],
+)
+def test_un_mail_sans_pdf_joint_au_premier_niveau_est_bloque(tmp_path, message):
+    """Aucun PDF n'est cherché en profondeur : un PDF sous une partie ne compte pas."""
+    assert rejection(message, tmp_path) == (NO_PDF, [])
+
+
+@pytest.mark.parametrize(
+    ("message", "names"),
+    [
+        pytest.param(mail(("a.pdf", PDF_TYPE), ("b.pdf", PDF_TYPE)), "a.pdf, b.pdf", id="deux-pdf"),
         pytest.param(
-            mail(("a.pdf", PDF_TYPE), ("b.pdf", PDF_TYPE), ("logo.png", "image/png")),
-            "mail avec 3 pièces jointes (a.pdf, b.pdf, logo.png), un seul PDF attendu",
-            id="plusieurs-pieces-jointes",
-        ),
-        pytest.param(
-            mail(("Commande.pdf", PDF_TYPE), (None, "image/png")),
-            "mail avec 2 pièces jointes (Commande.pdf, image/png), un seul PDF attendu",
-            id="une-sans-nom-parmi-plusieurs",
-        ),
-        pytest.param(
-            mail(("devis.docx", DOCX_TYPE)),
-            "pièce jointe « devis.docx » qui n'est pas un PDF",
-            id="seule-piece-jointe-docx",
-        ),
-        pytest.param(
-            forwarded(),
-            "pièce jointe « message/rfc822 » qui n'est pas un PDF",
-            id="seul-message-transfere",
+            mail(("Commande.pdf", PDF_TYPE), ("logo.png", "image/png"), (None, PDF_TYPE)),
+            "Commande.pdf, application/pdf",
+            id="un-pdf-sans-nom-et-une-image",
         ),
     ],
 )
-def test_un_mail_qui_ne_porte_pas_un_seul_pdf_est_rejete_avec_son_motif(tmp_path, message, reason):
-    with pytest.raises(RejectedMail) as rejection:
-        save(message, tmp_path)
-    assert (str(rejection.value), list((tmp_path / PDF_DIRECTORY).iterdir())) == (reason, [])
+def test_un_mail_a_plusieurs_pdf_joints_est_bloque_par_un_motif_qui_les_nomme(
+    tmp_path, message, names
+):
+    """Un PDF sans nom se cite par son type ; une pièce jointe qui n'est pas un PDF, jamais."""
+    assert rejection(message, tmp_path) == (SEVERAL_PDFS.format(names), [])
 
 
 def test_un_mail_dont_le_corps_inclut_une_image_se_traite_comme_son_seul_pdf_joint(tmp_path):
@@ -131,86 +175,42 @@ def test_une_piece_jointe_octet_stream_nommee_en_pdf_est_un_pdf(tmp_path):
     ],
 )
 def test_une_piece_jointe_faite_de_parties_n_est_pas_un_pdf_meme_nommee_en_pdf(tmp_path, make):
-    """Message transféré ou multipart : le parseur en lit des parties, jamais des octets."""
+    """Message transféré ou multipart : le parseur en lit des parties, jamais des octets.
+
+    Elle est ignorée : le mail se traite comme le PDF qui l'accompagne.
+    """
     part = mail()
     make(part)
     part["Content-Disposition"] = 'attachment; filename="x.pdf"'
-    message = mail()
-    message.make_mixed()
+    message = mail(("Commande.pdf", PDF_TYPE))
     message.attach(part)
-    assert decision(message, tmp_path) == "pièce jointe « x.pdf » qui n'est pas un PDF"
+    assert decision(message, tmp_path) == ("Commande.pdf", PDF)
 
 
 @pytest.mark.parametrize(
-    ("content_type", "disposition", "shown"),
+    ("name", "shown"),
     [
-        pytest.param(
-            DOCX_TYPE,
-            "attachment; filename*=utf-8''a%0A%23%23%20b.docx",
-            f"a{UNPRINTABLE}## b.docx",
-            id="nom-fin-de-ligne",
-        ),
-        pytest.param(
-            DOCX_TYPE,
-            "attachment; filename*=utf-8''a%0Db.docx",
-            f"a{UNPRINTABLE}b.docx",
-            id="nom-retour-chariot",
-        ),
-        pytest.param(
-            DOCX_TYPE,
-            "attachment; filename*=utf-8''a%E2%80%A8b.docx",
-            f"a{UNPRINTABLE}b.docx",
-            id="nom-separateur-de-ligne",
-        ),
-        pytest.param(
-            DOCX_TYPE,
-            "attachment; filename*=utf-8''a%01b.docx",
-            f"a{UNPRINTABLE}b.docx",
-            id="nom-caractere-de-controle",
-        ),
-        pytest.param(
-            "application/=?utf-8?q?a=0Ab?=",
-            "attachment",
-            f"application/a{UNPRINTABLE}b",
-            id="type-fin-de-ligne",
-        ),
-        pytest.param(
-            DOCX_TYPE,
-            "attachment; filename*=utf-8''n%C2%B0%C2%A03.docx",
-            "n° 3.docx",
-            id="nom-espace-insecable",
-        ),
-        pytest.param(
-            DOCX_TYPE,
-            "attachment; filename*=utf-8''n%C2%B0%E2%80%AF3.docx",
-            "n° 3.docx",
-            id="nom-espace-fine-insecable",
-        ),
-    ],
-)
-@pytest.mark.parametrize(
-    ("count", "reason"),
-    [
-        pytest.param(1, "pièce jointe « {0} » qui n'est pas un PDF", id="une-piece-jointe"),
-        pytest.param(
-            2,
-            "mail avec 2 pièces jointes ({0}, {0}), un seul PDF attendu",
-            id="deux-pieces-jointes",
-        ),
+        pytest.param("a%0A%23%23%20b.pdf", f"a{UNPRINTABLE}## b.pdf", id="fin-de-ligne"),
+        pytest.param("a%0Db.pdf", f"a{UNPRINTABLE}b.pdf", id="retour-chariot"),
+        pytest.param("a%E2%80%A8b.pdf", f"a{UNPRINTABLE}b.pdf", id="separateur-de-ligne"),
+        pytest.param("a%01b.pdf", f"a{UNPRINTABLE}b.pdf", id="caractere-de-controle"),
+        pytest.param("n%C2%B0%C2%A03.pdf", "n° 3.pdf", id="espace-insecable"),
+        pytest.param("n%C2%B0%E2%80%AF3.pdf", "n° 3.pdf", id="espace-fine-insecable"),
     ],
 )
 def test_un_motif_de_rejet_remplace_chaque_caractere_non_imprimable_venu_du_mail(
-    tmp_path, content_type, disposition, shown, count, reason
+    tmp_path, name, shown
 ):
-    """Nom ou, à défaut, type MIME : un motif tient sur sa ligne du rapport.
+    """Le nom d'un PDF joint, que cite le motif de plusieurs PDF, tient sur sa ligne du rapport.
 
-    Chemins du texte d'un mail vers une sortie : nom → motif, type MIME → motif (épinglés ici,
-    dans les deux motifs qui citent une pièce jointe), nom → nom de fichier (liste blanche,
-    `test_un_pdf_joint_garde_son_nom_s_il_a_une_forme_sure_sinon_se_nomme_piece_jointe`) ;
-    3 recensés, 2 fuyaient avant la neutralisation. Un espace insécable reste un espace.
+    Chemins du texte d'un mail vers une sortie : nom → motif, épinglé ici, et nom → nom de
+    fichier, par liste blanche, épinglé par
+    `test_un_pdf_joint_garde_son_nom_s_il_a_une_forme_sure_sinon_se_nomme_piece_jointe`. Le
+    type MIME n'entre plus dans un motif depuis que seuls les PDF comptent : un PDF sans nom s'y
+    cite par `application/pdf`, son seul type possible. Un espace insécable reste un espace.
     """
-    message = raw_mail(content_type, disposition, count)
-    assert decision(message, tmp_path) == reason.format(shown)
+    message = raw_mail(f"attachment; filename*=utf-8''{name}")
+    assert decision(message, tmp_path) == SEVERAL_PDFS.format(f"{shown}, {shown}")
 
 
 def test_deux_mails_au_meme_corps_mais_aux_pieces_jointes_differentes_sont_decides_autrement(
@@ -218,10 +218,7 @@ def test_deux_mails_au_meme_corps_mais_aux_pieces_jointes_differentes_sont_decid
 ):
     pdf = decision(mail(("Commande.pdf", PDF_TYPE), body=ORDER_BODY), tmp_path / "pdf")
     docx = decision(mail(("devis.docx", DOCX_TYPE), body=ORDER_BODY), tmp_path / "docx")
-    assert (pdf, docx) == (
-        ("Commande.pdf", PDF),
-        "pièce jointe « devis.docx » qui n'est pas un PDF",
-    )
+    assert (pdf, docx) == (("Commande.pdf", PDF), NO_PDF)
 
 
 @pytest.mark.parametrize(

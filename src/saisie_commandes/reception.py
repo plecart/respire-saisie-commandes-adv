@@ -7,8 +7,12 @@ système de fichiers. Deux documents au même nom sans extension se repèrent (`
 
 Un mail ne se lit que par ses pièces jointes, au sens de `EmailMessage.iter_attachments` : une
 image incluse dans un `multipart/related` n'en est pas une, un message transféré en est une.
-Son corps n'est jamais lu. Le mail dont la seule pièce jointe est un PDF se traite comme ce PDF, que
-`save_pdf_attachment` écrit dans un dossier ; tout autre mail est rejeté (`RejectedMail`).
+Son corps n'est jamais lu. Parmi ses pièces jointes, seuls les PDF comptent, les autres sont
+ignorées : le mail qui porte un seul PDF joint se traite comme ce PDF, que `save_pdf_attachment`
+écrit dans un dossier ; le mail qui n'en porte aucun, ou plusieurs, est rejeté (`RejectedMail`).
+Aucun PDF n'est cherché plus loin que le premier niveau : ni dans un message transféré, ni sous
+l'enveloppe `multipart/signed` d'un mail signé S/MIME, ni dans un mail sans parties, dont tout le
+contenu est un PDF (mail de scanner).
 
 Tout ce que porte un mail est non fiable : une pièce jointe faite de parties (message transféré,
 `multipart/*`) n'est jamais un PDF, le nom d'une pièce jointe ne devient un nom de fichier que
@@ -81,16 +85,17 @@ def is_mail(document: Path) -> bool:
 
 
 def save_pdf_attachment(mail: Path, directory: Path) -> Path:
-    """Écrit dans `directory` le PDF qu'un mail porte en seule pièce jointe ; rend son chemin.
+    """Écrit dans `directory` le seul PDF joint à un mail ; rend son chemin.
 
-    Le nom de la pièce jointe vient d'un fichier non fiable : le PDF n'en garde que le dernier
-    composant, coupé sur la barre oblique comme sur l'antislash, et seulement s'il a une forme
-    sûre ; sinon il se nomme `piece_jointe.pdf`. Rien ne s'écrit hors de `directory`. Un motif de
-    rejet cite le nom entier de la pièce jointe, ses seuls caractères non imprimables remplacés.
+    Les pièces jointes qui ne sont pas des PDF sont ignorées. Le nom du PDF joint vient d'un
+    fichier non fiable : le PDF n'en garde que le dernier composant, coupé sur la barre
+    oblique comme sur l'antislash, et seulement s'il a une forme sûre ; sinon il se nomme
+    `piece_jointe.pdf`. Rien ne s'écrit hors de `directory`, ni rien du tout pour un mail rejeté.
+    Le motif de rejet d'un mail à plusieurs PDF cite le nom entier de chacun, ses seuls
+    caractères non imprimables remplacés.
 
     Raises:
-        RejectedMail: le mail n'a aucune pièce jointe, en a plusieurs, PDF ou non, ou sa seule
-            pièce jointe n'est pas un PDF.
+        RejectedMail: le mail ne porte aucun PDF joint, ou en porte plusieurs.
     """
     message = BytesParser(policy=policy.default).parsebytes(mail.read_bytes())
     attachment = _pdf_attachment(message)
@@ -100,28 +105,24 @@ def save_pdf_attachment(mail: Path, directory: Path) -> Path:
 
 
 def _pdf_attachment(message: EmailMessage) -> EmailMessage:
-    """La seule pièce jointe d'un mail, qui est un PDF ; sinon `RejectedMail`, avec son motif."""
-    attachments = list(message.iter_attachments())
-    if not attachments:
-        raise RejectedMail("mail sans pièce jointe")
-    if len(attachments) > 1:
-        names = ", ".join(map(_display_name, attachments))
-        raise RejectedMail(
-            f"mail avec {len(attachments)} pièces jointes ({names}), un seul PDF attendu"
-        )
-    (attachment,) = attachments
-    if not _is_pdf(attachment):
-        raise RejectedMail(f"pièce jointe « {_display_name(attachment)} » qui n'est pas un PDF")
-    return attachment
+    """Le seul PDF parmi les pièces jointes d'un mail ; sinon `RejectedMail`, avec son motif."""
+    pdfs = [attachment for attachment in message.iter_attachments() if _is_pdf(attachment)]
+    if not pdfs:
+        raise RejectedMail("aucun PDF en pièce jointe")
+    if len(pdfs) > 1:
+        names = ", ".join(map(_display_name, pdfs))
+        raise RejectedMail(f"plusieurs PDF en pièce jointe ({names}), un seul attendu")
+    return pdfs[0]
 
 
-def _display_name(attachment: EmailMessage) -> str:
-    """Nom d'une pièce jointe dans un motif : son nom, à défaut son type MIME.
+def _display_name(pdf: EmailMessage) -> str:
+    """Nom d'un PDF joint dans un motif : son nom, à défaut son type, `application/pdf`.
 
-    L'un et l'autre peuvent porter une fin de ligne, même encodée : ils s'écrivent sur une ligne
-    (`on_one_line`), pour qu'un motif tienne sur sa ligne du rapport.
+    Un PDF sans nom ne l'est que par ce type (`_is_pdf`) : seul le nom vient du mail. Ce nom peut
+    porter une fin de ligne, même encodée : il s'écrit sur une ligne (`on_one_line`), pour qu'un
+    motif tienne sur sa ligne du rapport.
     """
-    return on_one_line(attachment.get_filename() or attachment.get_content_type())
+    return on_one_line(pdf.get_filename() or _PDF_TYPE)
 
 
 def _is_pdf(attachment: EmailMessage) -> bool:
