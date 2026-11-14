@@ -1,14 +1,13 @@
 #!/bin/sh
-# Prépare la saisie des commandes sur macOS, sans rien installer au préalable, et ne traite
-# aucun document :
+# Lance la relève de la boîte Gmail sur macOS, sans rien installer au préalable :
 #
 #   sh lancer.sh
 #
 # Sans `.env`, la clé d'API est demandée par une saisie masquée, puis écrite dans `.env`. Sans
 # uv, l'installeur officiel le pose dans ~/.local/bin, sans droits administrateur ni
-# modification des fichiers de configuration du shell. Relancé, le script ne redemande ni ne
-# réinstalle rien. Uv installe ensuite Python et les dépendances figées par `uv.lock`, puis le
-# script affiche la commande de relève de la boîte Gmail.
+# modification des fichiers de configuration du shell. Uv installe ensuite, s'ils manquent,
+# Python et les dépendances figées par `uv.lock`, puis lance la relève, sorties dans `sorties/`.
+# Relancé, le script ne redemande, ne télécharge ni ne réinstalle rien.
 set -eu
 
 # À la racine du dépôt, d'où que le script soit lancé : `.env` et `uv.lock` s'y trouvent.
@@ -42,12 +41,9 @@ fi
 
 if command -v uv > /dev/null 2>&1; then
   uv=uv
-  uv_shown=uv
 else
   uv_dir=$HOME/.local/bin
   uv=$uv_dir/uv
-  # Hors du PATH : la commande affichée nomme uv par son chemin.
-  uv_shown='~/.local/bin/uv'
   if [ ! -x "$uv" ]; then
     # Le PATH du shell courant ignore le nouveau dossier : uv s'appelle par son chemin.
     curl -LsSf https://astral.sh/uv/install.sh |
@@ -60,10 +56,4 @@ else
   fi
 fi
 
-"$uv" sync --locked
-
-echo
-echo "Préparatifs terminés. Avec GMAIL_ADDRESS et GMAIL_APP_PASSWORD dans .env, relever la boîte"
-echo "Gmail depuis ce dossier par :"
-echo
-echo "  $uv_shown run --locked --env-file .env saisie-commandes-releve sorties"
+exec "$uv" run --locked --env-file .env saisie-commandes-releve sorties
